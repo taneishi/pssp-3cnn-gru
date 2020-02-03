@@ -1,17 +1,16 @@
 import pandas as pd
 import numpy as np
-import torch
 import torch.nn.functional as F
-from torch import nn
+import torch.nn as nn
+import torch
 from torch.utils.data import Dataset, DataLoader
 from make_dataset import download_dataset, make_dataset
+import timeit
 import argparse
-import json
 import os
 
 N_STATE = 8
 N_AA = 21
-N_LEN = 23
 
 TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
 TEST_PATH = '../pssp-data/cb513+profile_split1.npy.gz'
@@ -20,60 +19,22 @@ class CrossEntropy(object):
     def __init__(self):
         pass
 
-    def __call__(self, out, target, seq_len):
+    def __call__(self, out, target):
         loss = 0
-        for o, t, l in zip(out, target, seq_len):
-            loss += nn.CrossEntropyLoss()(o[:l], t[:l])
+        for o, t in zip(out, target):
+            loss += nn.CrossEntropyLoss()(o, t)
         return loss
 
-# class LossFunc(object):
-#     def __init__(self):
-#         self.loss = nn.CrossEntropyLoss()
-#
-#     def __call__(self, out, target, seq_len):
-#         '''
-#         out.shape : (batch_size, class_num, seq_len)
-#         target.shape : (batch_size, seq_len)
-#         '''
-#         out = torch.clamp(out, 1e-15, 1 - 1e-15)
-#         return torch.tensor([self.loss(o[:l], t[:l])
-#                              for o, t, l in zip(out, target, seq_len)],
-#                             requires_grad=True).sum()
-
-def args2json(data, path, print_args=True):
-    data = vars(data)
-    if print_args:
-        print(f'\n+ ---------------------------')
-        for k, v in data.items():
-            print(f'  {k.upper()} : {v}')
-        print(f'+ ---------------------------\n')
-
-    with open(os.path.join(path, 'args.json'), 'w') as f:
-        json.dump(data, f)
-
-def accuracy(out, target, seq_len):
+def accuracy(out, target):
     '''
     out.shape : (batch_size, seq_len, class_num)
     target.shape : (class_num, seq_len)
-    seq_len.shape : (batch_size)
     '''
     out = out.cpu().data.numpy()
     target = target.cpu().data.numpy()
-    seq_len = seq_len.cpu().data.numpy()
-
     out = out.argmax(axis=2)
-    return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-def show_progress(epoch, total, test_loss, train_acc, acc):
-    print('[%3d/%3d] test_loss:%.2f, train_acc:%.3f acc:%.3f' % (epoch, total, test_loss, train_acc, acc))
-
-def save_history(history, save_dir):
-    save_path = os.path.join(save_dir, 'history.npy')
-    np.save(save_path, history)
-
-def save_model(model, save_dir):
-    save_path = os.path.join(save_dir, 'model.pth')
-    torch.save(model.state_dict(), save_path)
+    return np.array([np.equal(o, t).sum()/len(t) for o, t in zip(out, target)]).mean()
 
 class MyDataset(Dataset):
     def __init__(self, X, y, seq_len):
@@ -89,31 +50,6 @@ class MyDataset(Dataset):
         y = self.y[idx]
         seq_len = self.seq_len[idx]
         return x, y, seq_len
-
-class LoadDataset(object):
-    def __init__(self, batch_size_train, batch_size_test):
-        self.batch_size_train = batch_size_train
-        self.batch_size_test = batch_size_test
-
-    def load_dataset(self):
-        # train dataset
-        X_train, y_train, seq_len_train = make_dataset(TRAIN_PATH)
-
-        # test dataset
-        X_test, y_test, seq_len_test = make_dataset(TEST_PATH)
-        
-        return X_train, y_train, seq_len_train, X_test, y_test, seq_len_test
-
-    def __call__(self):
-        X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = self.load_dataset()
-
-        D_train = MyDataset(X_train, y_train, seq_len_train)
-        train_loader = DataLoader(D_train, batch_size=self.batch_size_train, shuffle=True)
-
-        D_test = MyDataset(X_test, y_test, seq_len_test)
-        test_loader = DataLoader(D_test, batch_size=self.batch_size_test, shuffle=False)
-
-        return train_loader, test_loader
 
 class Net(nn.Module):
     def __init__(self):
@@ -163,48 +99,43 @@ class Net(nn.Module):
         out = F.softmax(out, dim=2)
         return out
 
-def train(model, device, train_loader, optimizer, loss_function):
+def train(model, device, epoch, train_loader, optimizer, loss_function):
     model.train()
-    train_loss = 0
-    acc = 0
-    len_ = len(train_loader)
-    for data, target, seq_len in train_loader:
+    for index, (data, target, seq_len) in enumerate(train_loader, 1):
         data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
         optimizer.zero_grad()
         out = model(data)
-        loss = loss_function(out, target, seq_len)
+        loss = loss_function(out, target)
         loss.backward()
         optimizer.step()
-        acc = accuracy(out, target, seq_len)
-        print('\rtrain loss %6.4f' % (train_loss), end='')
-    print('')
+        print('\repoch%3d [%3d/%3d] train loss %6.4f' % (epoch, index, len(train_loader), loss.item()/len(data)), end='')
 
 def test(model, device, test_loader, loss_function):
     model.eval()
     test_loss = 0
     acc = 0
-    len_ = len(test_loader)
     with torch.no_grad():
         for data, target, seq_len in test_loader:
             data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
             out = model(data)
-            test_loss += loss_function(out, target, seq_len).cpu().data.numpy()
-            acc += accuracy(out, target, seq_len)
+            loss = loss_function(out, target).cpu().data.numpy()
+            test_loss += loss
+            acc += accuracy(out, target)
 
-    test_loss /= len_
-    acc /= len_
+    test_loss /= len(test_loader.dataset)
+    acc /= len(test_loader)
     return test_loss, acc
 
 def main():
     # params
     # ----------
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('-e', '--epochs', type=int, default=100,
-                        help='The number of epochs to run (default: 100)')
-    parser.add_argument('-b', '--batch_size_train', type=int, default=128,
-                        help='input batch size for training (default: 128)')
-    parser.add_argument('-b_test', '--batch_size_test', type=int, default=1024,
-                        help='input batch size for testing (default: 1024)')
+    parser.add_argument('-e', '--epochs', type=int, default=20,
+                        help='The number of epochs to run (default: 20)')
+    parser.add_argument('-b', '--batch_size_train', type=int, default=100,
+                        help='input batch size for training (default: 100)')
+    parser.add_argument('-b_test', '--batch_size_test', type=int, default=1000,
+                        help='input batch size for testing (default: 1000)')
     parser.add_argument('--result_dir', type=str, default='./result',
                         help='Output directory (default: ./result)')
     args = parser.parse_args()
@@ -214,11 +145,15 @@ def main():
 
     # make directory to save train history and model
     os.makedirs(args.result_dir, exist_ok=True)
-    args2json(args, args.result_dir)
 
     # laod dataset and set k-fold cross validation
-    D = LoadDataset(args.batch_size_train, args.batch_size_test)
-    train_loader, test_loader = D()
+    X, y, seq_len = make_dataset(TRAIN_PATH)
+    train_loader = DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
+
+    X, y, seq_len = make_dataset(TEST_PATH)
+    test_loader = DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
+
+    print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
     # model, loss_function, optimizer
     model = Net().to(device)
@@ -229,17 +164,20 @@ def main():
     loss_function = CrossEntropy()
     optimizer = torch.optim.Adam(model.parameters(), weight_decay=0.01)
 
+    start = timeit.default_timer()
+
     # train and test
     history = []
     for epoch in range(1, args.epochs+1):
-        train(model, device, train_loader, optimizer, loss_function)
+        epoch_start = timeit.default_timer()
+        train(model, device, epoch, train_loader, optimizer, loss_function)
         test_loss, acc = test(model, device, test_loader, loss_function)
-        history.append([train_loss, test_loss, train_acc, acc])
-        show_progress(epoch, args.epochs, test_loss, train_acc, acc)
+        history.append([test_loss, acc])
+        print(' test_loss:%6.4f acc:%6.3f time %4.1fs' % (test_loss, acc, timeit.default_timer() - epoch_start))
 
     # save train history and model
-    save_history(history, args.result_dir)
-    save_model(model, args.result_dir)
+    np.save(os.path.join(args.result_dir, 'history.npy'), history)
+    torch.save(model.state_dict(), os.path.join(args.result_dir, 'model.pth'))
 
 if __name__ == '__main__':
     torch.manual_seed(123)
