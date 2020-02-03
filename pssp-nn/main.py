@@ -64,9 +64,8 @@ def accuracy(out, target, seq_len):
     out = out.argmax(axis=2)
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-def show_progress(e, e_total, train_loss, test_loss, train_acc, acc):
-    print('[%3d/%3d] train_loss:%.2f, ' % (e, e_total, train_loss) +
-        'test_loss:%.2f, train_acc:%.3f acc:%.3f' % (test_loss, train_acc, acc))
+def show_progress(epoch, total, test_loss, train_acc, acc):
+    print('[%3d/%3d] test_loss:%.2f, train_acc:%.3f acc:%.3f' % (epoch, total, test_loss, train_acc, acc))
 
 def save_history(history, save_dir):
     save_path = os.path.join(save_dir, 'history.npy')
@@ -169,19 +168,16 @@ def train(model, device, train_loader, optimizer, loss_function):
     train_loss = 0
     acc = 0
     len_ = len(train_loader)
-    for batch_idx, (data, target, seq_len) in enumerate(train_loader):
+    for data, target, seq_len in train_loader:
         data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
         optimizer.zero_grad()
         out = model(data)
         loss = loss_function(out, target, seq_len)
         loss.backward()
         optimizer.step()
-        train_loss += loss.item()
-        acc += accuracy(out, target, seq_len)
-
-    train_loss /= len_
-    acc /= len_
-    return train_loss, acc
+        acc = accuracy(out, target, seq_len)
+        print('\rtrain loss %6.4f' % (train_loss), end='')
+    print('')
 
 def test(model, device, test_loader, loss_function):
     model.eval()
@@ -189,7 +185,7 @@ def test(model, device, test_loader, loss_function):
     acc = 0
     len_ = len(test_loader)
     with torch.no_grad():
-        for i, (data, target, seq_len) in enumerate(test_loader):
+        for data, target, seq_len in test_loader:
             data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
             out = model(data)
             test_loss += loss_function(out, target, seq_len).cpu().data.numpy()
@@ -213,11 +209,8 @@ def main():
                         help='Output directory (default: ./result)')
     args = parser.parse_args()
 
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    else:
-        device = torch.device('cpu')
-    print('Use %s device.' % device)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Using %s device.' % device)
 
     # make directory to save train history and model
     os.makedirs(args.result_dir, exist_ok=True)
@@ -238,11 +231,11 @@ def main():
 
     # train and test
     history = []
-    for e in range(args.epochs):
-        train_loss, train_acc = train(model, device, train_loader, optimizer, loss_function)
+    for epoch in range(1, args.epochs+1):
+        train(model, device, train_loader, optimizer, loss_function)
         test_loss, acc = test(model, device, test_loader, loss_function)
         history.append([train_loss, test_loss, train_acc, acc])
-        show_progress(e+1, args.epochs, train_loss, test_loss, train_acc, acc)
+        show_progress(epoch, args.epochs, test_loss, train_acc, acc)
 
     # save train history and model
     save_history(history, args.result_dir)
