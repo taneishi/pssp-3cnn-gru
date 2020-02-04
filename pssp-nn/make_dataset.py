@@ -19,7 +19,7 @@ def make_dataset(path):
         data = np.load(f)
     data = data.reshape(-1, 700, 57) # 57 features
 
-    X = data[:, :, np.arange(21)] # 20-residues and no-seq
+    X = data[:, :, np.arange(21)] # 20-residues + no-seq
     X = X.transpose(0, 2, 1)
     X = X.astype('float32')
 
