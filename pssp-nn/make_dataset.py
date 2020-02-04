@@ -17,9 +17,9 @@ def download_dataset():
 def make_dataset(path):
     with gzip.open(path, 'rb') as f:
         data = np.load(f)
-    data = data.reshape(-1, 700, 57)
+    data = data.reshape(-1, 700, 57) # 57 features
 
-    X = data[:, :, np.arange(21)] # 20-residues
+    X = data[:, :, np.arange(21)] # 20-residues and no-seq
     X = X.transpose(0, 2, 1)
     X = X.astype('float32')
 
@@ -29,6 +29,15 @@ def make_dataset(path):
 
     mask = data[:, :, 30] * -1 + 1
     seq_len = mask.sum(axis=1)
-    seq_len = seq_len.astype('float32')
-
+    seq_len = seq_len.astype('int')
+    
     return X, y, seq_len
+
+if __name__ == '__main__':
+    download_dataset()
+    X, y, seq_len = make_dataset(TEST_PATH)
+    index = 0
+    length = seq_len[index]
+    print(X[index, :, :length], X[index, :, :length].shape)
+    print(y[index][:length])
+    print(length)

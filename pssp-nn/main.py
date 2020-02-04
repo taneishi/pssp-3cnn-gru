@@ -19,22 +19,23 @@ class CrossEntropy(object):
     def __init__(self):
         pass
 
-    def __call__(self, out, target):
+    def __call__(self, out, target, seq_len):
         loss = 0
-        for o, t in zip(out, target):
-            loss += nn.CrossEntropyLoss()(o, t)
+        for o, t, l in zip(out, target, seq_len):
+            loss += nn.CrossEntropyLoss()(o[:l], t[:l])
         return loss
 
-def accuracy(out, target):
+def accuracy(out, target, seq_len):
     '''
     out.shape : (batch_size, seq_len, class_num)
     target.shape : (class_num, seq_len)
     '''
     out = out.cpu().data.numpy()
     target = target.cpu().data.numpy()
+    seq_len = seq_len.cpu().data.numpy()
     out = out.argmax(axis=2)
 
-    return np.array([np.equal(o, t).sum()/len(t) for o, t in zip(out, target)]).mean()
+    return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
 class MyDataset(Dataset):
     def __init__(self, X, y, seq_len):
@@ -46,10 +47,7 @@ class MyDataset(Dataset):
         return len(self.y)
 
     def __getitem__(self, idx):
-        x = self.X[idx]
-        y = self.y[idx]
-        seq_len = self.seq_len[idx]
-        return x, y, seq_len
+        return self.X[idx], self.y[idx], self.seq_len[idx]
 
 class Net(nn.Module):
     def __init__(self):
@@ -57,6 +55,7 @@ class Net(nn.Module):
 
         # Conv1d(in_channels, out_channels, kernel_size, stride, padding)
         conv_hidden_size = 64
+
         self.conv1 = nn.Sequential(
             nn.Conv1d(N_AA, conv_hidden_size, 3, 1, 3 // 2),
             nn.ReLU())
@@ -75,9 +74,9 @@ class Net(nn.Module):
         self.brnn = nn.GRU(conv_hidden_size*3, rnn_hidden_size, 3, True, True, 0.5, True)
 
         self.fc = nn.Sequential(
-                nn.Linear(rnn_hidden_size*2+conv_hidden_size*3, 126),
+                nn.Linear(rnn_hidden_size*2+conv_hidden_size*3, 128),
                 nn.ReLU(),
-                nn.Linear(126, N_STATE),
+                nn.Linear(128, N_STATE),
                 nn.ReLU())
 
     def forward(self, x):
@@ -101,14 +100,17 @@ class Net(nn.Module):
 
 def train(model, device, epoch, train_loader, optimizer, loss_function):
     model.train()
+    train_loss = 0
     for index, (data, target, seq_len) in enumerate(train_loader, 1):
         data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
         optimizer.zero_grad()
         out = model(data)
-        loss = loss_function(out, target)
+        loss = loss_function(out, target, seq_len)
+        train_loss += loss.item() / len(data)
+        acc = accuracy(out, target, seq_len)
         loss.backward()
         optimizer.step()
-        print('\repoch%3d [%3d/%3d] train loss %6.4f' % (epoch, index, len(train_loader), loss.item()/len(data)), end='')
+        print('\repoch%3d [%3d/%3d] train loss %6.4f train acc%6.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
 
 def test(model, device, test_loader, loss_function):
     model.eval()
@@ -118,9 +120,9 @@ def test(model, device, test_loader, loss_function):
         for data, target, seq_len in test_loader:
             data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
             out = model(data)
-            loss = loss_function(out, target).cpu().data.numpy()
+            loss = loss_function(out, target, seq_len).cpu().data.numpy()
             test_loss += loss
-            acc += accuracy(out, target)
+            acc += accuracy(out, target, seq_len)
 
     test_loss /= len(test_loader.dataset)
     acc /= len(test_loader)
@@ -130,8 +132,8 @@ def main():
     # params
     # ----------
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('-e', '--epochs', type=int, default=20,
-                        help='The number of epochs to run (default: 20)')
+    parser.add_argument('-e', '--epochs', type=int, default=100,
+                        help='The number of epochs to run (default: 100)')
     parser.add_argument('-b', '--batch_size_train', type=int, default=100,
                         help='input batch size for training (default: 100)')
     parser.add_argument('-b_test', '--batch_size_test', type=int, default=1000,
@@ -173,7 +175,7 @@ def main():
         train(model, device, epoch, train_loader, optimizer, loss_function)
         test_loss, acc = test(model, device, test_loader, loss_function)
         history.append([test_loss, acc])
-        print(' test_loss:%6.4f acc:%6.3f time %4.1fs' % (test_loss, acc, timeit.default_timer() - epoch_start))
+        print(' test_loss %6.4f acc%6.3f time %5.1fs' % (test_loss, acc, timeit.default_timer() - epoch_start))
 
     # save train history and model
     np.save(os.path.join(args.result_dir, 'history.npy'), history)

@@ -9,3 +9,6 @@ docs/_build/
 
 # pyenv
 .python-version
+
+# data
+*.npy.gz
