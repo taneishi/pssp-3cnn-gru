@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import torch.nn.functional as F
+import torch.utils as utils
 import torch.nn as nn
 import torch
-from torch.utils.data import Dataset, DataLoader
 from make_dataset import download_dataset, make_dataset
 import timeit
 import argparse
@@ -37,7 +37,7 @@ def accuracy(out, target, seq_len):
 
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-class MyDataset(Dataset):
+class MyDataset(utils.data.Dataset):
     def __init__(self, X, y, seq_len):
         self.X = X
         self.y = y.astype(int)
@@ -150,10 +150,10 @@ def main():
 
     # laod dataset and set k-fold cross validation
     X, y, seq_len = make_dataset(TRAIN_PATH)
-    train_loader = DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
+    train_loader = utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
 
     X, y, seq_len = make_dataset(TEST_PATH)
-    test_loader = DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
+    test_loader = utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
 
     print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
