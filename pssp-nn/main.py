@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 import torch.nn.functional as F
-import torch.utils as utils
+import torch.utils.data
 import torch.nn as nn
 import torch
 from make_dataset import download_dataset, make_dataset
@@ -151,10 +151,10 @@ def main():
 
     # laod dataset and set k-fold cross validation
     X, y, seq_len = make_dataset(TRAIN_PATH)
-    train_loader = utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
 
     X, y, seq_len = make_dataset(TEST_PATH)
-    test_loader = utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
+    test_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
 
     print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
