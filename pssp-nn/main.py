@@ -150,10 +150,18 @@ def main():
     os.makedirs(args.result_dir, exist_ok=True)
 
     # laod dataset and set k-fold cross validation
-    X, y, seq_len = make_dataset(TRAIN_PATH)
+    if os.path.exists('train.npz'):
+        X, y, seq_len = np.load('train.npz').values()
+    else:
+        X, y, seq_len = make_dataset(TRAIN_PATH)
+        np.savez_compressed('train.npz', X=X, y=y, seq_len=seq_len)
     train_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
 
-    X, y, seq_len = make_dataset(TEST_PATH)
+    if os.path.exists('test.npz'):
+        X, y, seq_len = np.load('test.npz').values()
+    else:
+        X, y, seq_len = make_dataset(TEST_PATH)
+        np.savez_compressed('test.npz', X=X, y=y, seq_len=seq_len)
     test_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
 
     print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
