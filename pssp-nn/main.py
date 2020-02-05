@@ -38,7 +38,7 @@ def accuracy(out, target, seq_len):
 
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-class MyDataset(utils.data.Dataset):
+class MyDataset(torch.utils.data.Dataset):
     def __init__(self, X, y, seq_len):
         self.X = X
         self.y = y.astype(int)
