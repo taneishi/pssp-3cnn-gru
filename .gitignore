@@ -12,3 +12,6 @@ docs/_build/
 
 # data
 *.npy.gz
+
+log*
+result*
