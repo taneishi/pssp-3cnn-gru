@@ -1,18 +1,17 @@
+#!/usr/bin/env python
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
-import transformer.Constants as Constants
-from dataset import TranslationDataset, paired_collate_fn
-from transformer.Models import Transformer
-from transformer.Optim import ScheduledOptim
-from utils import args2json, save_model, save_history, show_progress
-from tqdm import tqdm
 import argparse
 import math
-import time
 import timeit
 import os
+from transformer.Models import Transformer
+from transformer.Optim import ScheduledOptim
+import transformer.Constants as Constants
+from dataset import TranslationDataset, paired_collate_fn
+from utils import args2json, save_model, save_history, show_progress
 
 def toseq(tensor):
     return ''.join(map(str, tensor.tolist()))
@@ -205,7 +204,6 @@ def main():
     # parser.add_argument('-save_model', type=str, default='model')
     # parser.add_argument('-save_mode', type=str, choices=['all', 'best'], default='best')
 
-    parser.add_argument('-cuda', action='store_true', default=True)
     parser.add_argument('-label_smoothing', action='store_true')
 
     opt = parser.parse_args()
@@ -228,11 +226,8 @@ def main():
         assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
             'The src/tgt word2idx table are different but asked to share word embedding.'
 
-    if opt.cuda and torch.cuda.is_available():
-        device = torch.device('cuda')
-        torch.cuda.set_device(0)
-    else:
-        device = torch.device('cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print('Using %s device.' % device)
 
     print(opt)
 
@@ -267,7 +262,7 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['train']['src'],
             tgt_insts=data['train']['tgt']),
-        num_workers=2,
+        num_workers=0,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn,
         shuffle=True)
@@ -278,7 +273,7 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['valid']['src'],
             tgt_insts=data['valid']['tgt']),
-        num_workers=2,
+        num_workers=0,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn)
     return train_loader, valid_loader

@@ -1,9 +1,11 @@
-''' Handling the data io '''
+#!/usr/bin/env python
+# Handling the data io
 import os
 import argparse
 import torch
 import pickle
 import transformer.Constants as Constants
+from download_dataset import download_dataset, make_datasets
 
 def read_instances_from_file(inst_file, max_sent_len, keep_case):
     ''' Convert file into word seq lists and vocab '''
@@ -71,12 +73,11 @@ def load_picke_data(path):
         data = pickle.load(f)
     return data
 
-
 def main():
     ''' Main function '''
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-data_dir', default='../../helix/csv')
+    parser.add_argument('-data_dir', default='../pssp-data')
     parser.add_argument('-train_src', default='aa_train.txt')
     parser.add_argument('-train_tgt', default='pss_train.txt')
 
@@ -84,8 +85,7 @@ def main():
     parser.add_argument('-valid_tgt', default='pss_test.txt')
 
     parser.add_argument('-save_data', default='../pssp-data/dataset.pt')
-    #parser.add_argument('-max_len', '--max_word_seq_len', type=int, default=700)
-    parser.add_argument('-max_len', '--max_word_seq_len', type=int, default=23)
+    parser.add_argument('-max_len', '--max_word_seq_len', type=int, default=700)
     parser.add_argument('-min_word_count', type=int, default=5)
     parser.add_argument('-keep_case', action='store_true')
     parser.add_argument('-share_vocab', action='store_true')
@@ -93,6 +93,10 @@ def main():
 
     opt = parser.parse_args()
     opt.max_token_seq_len = opt.max_word_seq_len + 2 # include the <s> and </s>
+
+    if not os.path.isfile(opt.save_data):
+        download_dataset()
+        make_datasets()
 
     # Training set
     train_src_word_insts = read_instances_from_file(

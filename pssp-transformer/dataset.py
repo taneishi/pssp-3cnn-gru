@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.utils.data
-
 from transformer import Constants
 
 def paired_collate_fn(insts):
@@ -13,7 +12,6 @@ def paired_collate_fn(insts):
     tgt_insts = collate_fn(tgt_insts)
 
     return (*src_insts, *tgt_insts)
-
 
 def collate_fn_x(insts):
     ''' Pad the instance to the max seq length in batch '''
@@ -34,7 +32,6 @@ def collate_fn_x(insts):
 
     return batch_seq, batch_pos
 
-
 def collate_fn(insts):
     ''' Pad the instance to the max seq length in batch '''
 
@@ -53,7 +50,6 @@ def collate_fn(insts):
     batch_pos = torch.LongTensor(batch_pos)
 
     return batch_seq, batch_pos
-
 
 class TranslationDataset(torch.utils.data.Dataset):
     def __init__(

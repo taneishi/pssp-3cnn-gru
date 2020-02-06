@@ -1,25 +1,22 @@
-import os
-import time
-import json
-import pickle
 import numpy as np
-import gzip
-import collections
-
 import torch
 from torch import nn
+import collections
+import pickle
+import json
+import time
+import gzip
+import os
 
-N_STATE = 3
+N_STATE = 8
 
 def save_text(data, save_path):
     with open(save_path, mode='w') as f:
         f.write('\n'.join(data))
 
-
 def save_picke(data, save_path):
-    with open(save_path, mode="wb") as f:
+    with open(save_path, mode='wb') as f:
         pickle.dump(data, f)
-
 
 def args2json(data, path, print_args=True):
     data = vars(data)
@@ -32,13 +29,10 @@ def args2json(data, path, print_args=True):
     with open(os.path.join(path, 'args.json'), 'w') as f:
         json.dump(data, f)
 
-
-
 def amino_count(t):
     c = collections.Counter(t)
     keys, values = c.keys(), c.values()
     return list(keys), list(values)
-
 
 def acid_accuracy(out, target, seq_len):
     out = out.cpu().data.numpy()
@@ -62,26 +56,23 @@ def acid_accuracy(out, target, seq_len):
 
     return np.divide(count_2, count_1, out=np.zeros(N_STATE), where=count_1!=0)
 
-
 def load_gz(path): # load a .npy.gz file
-    if path.endswith(".gz"):
+    if path.endswith('.gz'):
         f = gzip.open(path, 'rb')
         return np.load(f)
     else:
         return np.load(path)
 
 def timestamp():
-    return time.strftime("%Y%m%d%H%M", time.localtime())
+    return time.strftime('%Y%m%d%H%M', time.localtime())
 
 def show_progress(e, e_total, train_loss, test_loss, train_acc, acc):
     print(f'[{e:3d}/{e_total:3d}] train_loss:{train_loss:.2f}, '\
           f'test_loss:{test_loss:.2f}, train_acc:{train_acc:.3f}, acc:{acc:.3f}')
 
-
 def save_history(history, save_dir):
     save_path = os.path.join(save_dir, 'history.npy')
     np.save(save_path, history)
-
 
 def save_model(model, save_dir):
     save_path = os.path.join(save_dir, 'model.pth')
