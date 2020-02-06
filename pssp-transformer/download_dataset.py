@@ -60,13 +60,6 @@ def make_dataset_for_transformer(X, y, seq_len, key):
     save_text(amino_acid_array, save_path)
     print(f'[Info] Saved amino_acid_array for {key} in {save_path}')
 
-    '''
-    seq_profile = get_seq_profile(X_profile, seq_len)
-    save_path = SP_PATH(key)
-    save_picke(seq_profile, save_path)
-    print(f'[Info] Saved seq_profile for {key} in {save_path}')
-    '''
-
     pss_array = get_pss_array(y, seq_len)
     save_path = PSS_PATH(key)
     save_text(pss_array, save_path)
@@ -101,9 +94,3 @@ def get_pss_array(label, seq_len):
         pss_array.append(pss_str)
 
     return pss_array
-
-def get_seq_profile(X_profile, seq_len):
-    seq_profile = []
-    for sp, l in zip(X_profile, seq_len):
-        seq_profile.append(sp[:, :l])
-    return seq_profile

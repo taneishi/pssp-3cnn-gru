@@ -53,17 +53,15 @@ def cal_loss(pred, gold, smoothing):
 
 def train_epoch(model, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
-
     model.train()
 
     total_loss = 0
     n_word_total = 0
     n_word_correct = 0
 
-    now = timeit.default_timer()
+    epoch_start = timeit.default_timer()
 
     for batch in training_data:
-
         # prepare data
         src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
         # print('-----------')
@@ -92,7 +90,7 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
         n_word_total += n_word
         n_word_correct += n_correct
 
-    print(timeit.default_timer() - now)
+    print(' time %4.1f' % (timeit.default_timer() - epoch_start))
 
     loss_per_word = total_loss/n_word_total
     accuracy = n_word_correct/n_word_total
@@ -100,7 +98,6 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
 
 def eval_epoch(model, validation_data, device):
     ''' Epoch operation in evaluation phase '''
-
     model.eval()
 
     total_loss = 0
@@ -109,7 +106,6 @@ def eval_epoch(model, validation_data, device):
 
     with torch.no_grad():
         for batch in validation_data:
-
             # prepare data
             src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
             gold = tgt_seq[:, 1:]
@@ -132,7 +128,6 @@ def eval_epoch(model, validation_data, device):
 
 def train(model, training_data, validation_data, optimizer, device, opt):
     ''' Start training '''
-
     log_train_file = None
     log_valid_file = None
 
@@ -150,9 +145,7 @@ def train(model, training_data, validation_data, optimizer, device, opt):
     history = []
     valid_accus = []
     for e in range(opt.epoch):
-
-        train_loss, train_accu = train_epoch(
-            model, training_data, optimizer, device, smoothing=opt.label_smoothing)
+        train_loss, train_accu = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
 
         valid_loss, valid_accu = eval_epoch(model, validation_data, device)
 
@@ -262,7 +255,7 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['train']['src'],
             tgt_insts=data['train']['tgt']),
-        num_workers=0,
+        num_workers=2,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn,
         shuffle=True)
@@ -273,7 +266,7 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['valid']['src'],
             tgt_insts=data['valid']['tgt']),
-        num_workers=0,
+        num_workers=2,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn)
     return train_loader, valid_loader
