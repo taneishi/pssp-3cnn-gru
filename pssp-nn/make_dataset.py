@@ -35,9 +35,7 @@ def make_dataset(path):
 
 if __name__ == '__main__':
     download_dataset()
-    X, y, seq_len = make_dataset(TEST_PATH)
-    index = 0
-    length = seq_len[index]
-    print(X[index, :, :length], X[index, :, :length].shape)
-    print(y[index][:length])
-    print(length)
+    X_train, y_train, seq_len_train = make_dataset(TRAIN_PATH)
+    X_test, y_test, seq_len_test = make_dataset(TEST_PATH)
+    np.savez_compressed('dataset.npz', X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
+            X_test=X_test, y_test=y_test, seq_len_test=seq_len_test)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import pandas as pd
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
@@ -31,9 +30,9 @@ def accuracy(out, target, seq_len):
     out.shape : (batch_size, seq_len, class_num)
     target.shape : (class_num, seq_len)
     '''
-    out = out.cpu().data.numpy()
-    target = target.cpu().data.numpy()
-    seq_len = seq_len.cpu().data.numpy()
+    out = out.cpu().detach().numpy()
+    target = target.cpu().detach().numpy()
+    seq_len = seq_len.cpu().detach().numpy()
     out = out.argmax(axis=2)
 
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
@@ -121,8 +120,8 @@ def test(model, device, test_loader, loss_function):
         for data, target, seq_len in test_loader:
             data, target, seq_len = data.to(device), target.to(device), seq_len.to(device)
             out = model(data)
-            loss = loss_function(out, target, seq_len).cpu().data.numpy()
-            test_loss += loss
+            loss = loss_function(out, target, seq_len)
+            test_loss += loss.item()
             acc += accuracy(out, target, seq_len)
 
     test_loss /= len(test_loader.dataset)
@@ -146,23 +145,14 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
-    # make directory to save train history and model
+    # make directory to save trained model
     os.makedirs(args.result_dir, exist_ok=True)
 
     # laod dataset and set k-fold cross validation
-    if os.path.exists('train.npz'):
-        X, y, seq_len = np.load('train.npz').values()
-    else:
-        X, y, seq_len = make_dataset(TRAIN_PATH)
-        np.savez_compressed('train.npz', X=X, y=y, seq_len=seq_len)
-    train_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=True)
+    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('dataset.npz').values()
 
-    if os.path.exists('test.npz'):
-        X, y, seq_len = np.load('test.npz').values()
-    else:
-        X, y, seq_len = make_dataset(TEST_PATH)
-        np.savez_compressed('test.npz', X=X, y=y, seq_len=seq_len)
-    test_loader = torch.utils.data.DataLoader(MyDataset(X, y, seq_len), batch_size=args.batch_size_train, shuffle=False)
+    train_loader = torch.utils.data.DataLoader(MyDataset(X_train, y_train, seq_len_train), batch_size=args.batch_size_train, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(MyDataset(X_test, y_test, seq_len_test), batch_size=args.batch_size_test, shuffle=False)
 
     print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
@@ -178,16 +168,13 @@ def main():
     start = timeit.default_timer()
 
     # train and test
-    history = []
     for epoch in range(1, args.epochs+1):
         epoch_start = timeit.default_timer()
         train(model, device, epoch, train_loader, optimizer, loss_function)
         test_loss, acc = test(model, device, test_loader, loss_function)
-        history.append([test_loss, acc])
         print(' test_loss %6.4f acc%6.3f time %5.1fs' % (test_loss, acc, timeit.default_timer() - epoch_start))
 
-    # save train history and model
-    np.save(os.path.join(args.result_dir, 'history.npy'), history)
+    # save trained model
     torch.save(model.state_dict(), os.path.join(args.result_dir, 'model.pth'))
 
 if __name__ == '__main__':
