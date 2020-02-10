@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import torch.utils.data
 import torch.nn as nn
 import torch
-from make_dataset import download_dataset, make_dataset
 import timeit
 import argparse
 import os
@@ -179,5 +178,4 @@ def main():
 
 if __name__ == '__main__':
     torch.manual_seed(123)
-    download_dataset()
     main()
