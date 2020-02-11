@@ -7,9 +7,4 @@ lscpu | grep 'Model name\\|^CPU(s)'
 if [ $PBS_O_HOST ]; then echo $PBS_O_HOST; fi
 if [ $PBS_O_WORKDIR ]; then cd $PBS_O_WORKDIR; mkdir -p log; fi
 
-if [ -d /opt/intel/inteloneapi ]; then 
-    source /opt/intel/inteloneapi/setvars.sh
-    conda activate pytorch
-fi
-
 python main.py
