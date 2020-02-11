@@ -1,5 +1,5 @@
 #!/bin/sh
-#PBS -o log/$PBS_JOBID.out
+#PBS -o log/%j.out
 #PBS -j oe
 
 lscpu | grep 'Model name\\|^CPU(s)'
