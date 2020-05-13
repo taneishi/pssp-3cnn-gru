@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data

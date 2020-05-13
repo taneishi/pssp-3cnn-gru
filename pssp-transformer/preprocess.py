@@ -1,9 +1,9 @@
-#!/usr/bin/env python
 # Handling the data io
-import os
-import argparse
 import torch
+import argparse
 import pickle
+import os
+
 import transformer.Constants as Constants
 from download_dataset import download_dataset, make_datasets
 

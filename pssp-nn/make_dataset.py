@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 import numpy as np
-import gzip
 import os
 
 TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
@@ -10,14 +8,13 @@ TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_sp
 
 def download_dataset():
     if not (os.path.isfile(TRAIN_PATH) and os.path.isfile(TEST_PATH)):
-        print('[Info] Downloading CB513 and CullPDB dataset ...')
+        print('Downloading CB513 and CullPDB dataset ...')
         os.makedirs('../pssp-data', exist_ok=True)
         os.system(f'wget -O {TRAIN_PATH} {TRAIN_URL}')
         os.system(f'wget -O {TEST_PATH} {TEST_URL}')
 
 def make_dataset(path):
-    with gzip.open(path, 'rb') as f:
-        data = np.load(f)
+    data = np.load(path)
     data = data.reshape(-1, 700, 57) # 57 features
 
     X = data[:, :, np.arange(21)] # 20-residues + no-seq
@@ -36,6 +33,7 @@ def make_dataset(path):
 
 if __name__ == '__main__':
     download_dataset()
+    print('Converting files ...')
     X_train, y_train, seq_len_train = make_dataset(TRAIN_PATH)
     X_test, y_test, seq_len_test = make_dataset(TEST_PATH)
     np.savez_compressed('dataset.npz', X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
