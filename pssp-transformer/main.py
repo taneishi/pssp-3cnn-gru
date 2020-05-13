@@ -175,7 +175,7 @@ def main():
     parser.add_argument('-data', default='../pssp-data/dataset.pt')
 
     parser.add_argument('-epoch', type=int, default=100)
-    parser.add_argument('-batch_size', type=int, default=4*5)
+    parser.add_argument('-batch_size', type=int, default=20)
 
     #parser.add_argument('-d_word_vec', type=int, default=512)
     parser.add_argument('-d_model', type=int, default=256)

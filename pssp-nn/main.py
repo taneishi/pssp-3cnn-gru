@@ -10,9 +10,6 @@ import os
 N_STATE = 8
 N_AA = 21
 
-TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
-TEST_PATH = '../pssp-data/cb513+profile_split1.npy.gz'
-
 class CrossEntropy(object):
     def __init__(self):
         pass
