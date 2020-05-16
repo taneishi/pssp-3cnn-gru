@@ -99,7 +99,7 @@ def train(model, device, epoch, train_loader, optimizer, loss_function):
         loss.backward()
         optimizer.step()
 
-        print('\repoch%3d [%3d/%3d] train_loss %6.4f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
+        print('\repoch%3d [%3d/%3d] train_loss %6.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
 
 def test(model, device, test_loader, loss_function):
     test_loss = 0
@@ -114,7 +114,7 @@ def test(model, device, test_loader, loss_function):
         test_loss += loss.item() / len(data)
         acc += accuracy(out, target, seq_len)
     
-    print(' test_loss %6.4f test_acc %5.3f' % (test_loss / index, acc / index), end='')
+    print(' test_loss %6.3f test_acc %5.3f' % (test_loss / index, acc / index), end='')
 
     return test_loss, acc
 
