@@ -50,7 +50,7 @@ def cal_loss(pred, gold, smoothing):
 
     return loss
 
-def train_epoch(model, training_data, optimizer, device, smoothing):
+def train(model, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
     model.train()
 
@@ -125,7 +125,7 @@ def eval_epoch(model, validation_data, device):
     accuracy = n_word_correct/n_word_total
     return loss_per_word, accuracy
 
-def train(model, training_data, validation_data, optimizer, device, opt):
+def train_epoch(model, training_data, validation_data, optimizer, device, opt):
     ''' Start training '''
     log_train_file = None
     log_valid_file = None

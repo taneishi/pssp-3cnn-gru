@@ -1,23 +1,24 @@
 import numpy as np
 import os
 
-TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
-TEST_PATH = '../pssp-data/cb513+profile_split1.npy.gz'
+TRAIN_FILE = 'cullpdb+profile_6133_filtered.npy.gz'
+TEST_FILE = 'cb513+profile_split1.npy.gz'
 TRAIN_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cullpdb+profile_6133_filtered.npy.gz'
 TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_split1.npy.gz'
 
-def download_dataset():
-    if not (os.path.isfile(TRAIN_PATH) and os.path.isfile(TEST_PATH)):
+def download_dataset(data_dir='../pssp-data'):
+    os.makedirs(data_dir, exist_ok=True)
+    if not (os.path.isfile(os.path.join(data_dir, TRAIN_FILE)) and 
+            os.path.isfile(os.path.join(data_dir, TEST_FILE))):
         print('Downloading CB513 and CullPDB dataset ...')
-        os.makedirs('../pssp-data', exist_ok=True)
-        os.system(f'wget -O {TRAIN_PATH} {TRAIN_URL}')
-        os.system(f'wget -O {TEST_PATH} {TEST_URL}')
+        os.system('wget -O {TRAIN_FILE} {TRAIN_URL}')
+        os.system('wget -O {TEST_FILE} {TEST_URL}')
 
-def make_dataset(path):
-    data = np.load(path)
-    data = data.reshape(-1, 700, 57) # 57 features
+def make_dataset(path, data_dir='../pssp-data'):
+    data = np.load(os.path.join(data_dir, path))
+    data = data.reshape(-1, 700, 57) # original 57 features
 
-    X = data[:, :, np.arange(21)] # 20-residues + no-seq
+    X = data[:, :, np.arange(21)] # 20-residues + non-seq
     X = X.transpose(0, 2, 1)
     X = X.astype('float32')
 
@@ -33,8 +34,10 @@ def make_dataset(path):
 
 if __name__ == '__main__':
     download_dataset()
-    print('Converting files ...')
-    X_train, y_train, seq_len_train = make_dataset(TRAIN_PATH)
-    X_test, y_test, seq_len_test = make_dataset(TEST_PATH)
-    np.savez_compressed('dataset.npz', X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
+    print('Build dataset files ...')
+    X_train, y_train, seq_len_train = make_dataset(TRAIN_FILE)
+    X_test, y_test, seq_len_test = make_dataset(TEST_FILE)
+
+    np.savez_compressed('dataset.npz',
+            X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
             X_test=X_test, y_test=y_test, seq_len_test=seq_len_test)
