@@ -10,7 +10,7 @@ I used CB513 dataset of https://github.com/alrojo/CB513.
 
 |sequence length (train)|sequence length (test)|
 |:-:|:-:|
-|![](figure/seqlen_train.png)|![](figre/seqlen_test.png)|
+|![](figure/seqlen_train.png)|![](figure/seqlen_test.png)|
 
 |amino acid (train)|amino acid (test)|
 |:-:|:-:|
