@@ -1,9 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
-# pyenv
-.python-version
-
 # data
 *.npy.gz
 aa_*.txt

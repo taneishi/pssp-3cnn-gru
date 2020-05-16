@@ -55,9 +55,6 @@ def acid_accuracy(out, target, seq_len):
 
     return np.divide(count_2, count_1, out=np.zeros(N_STATE), where=count_1!=0)
 
-def timestamp():
-    return time.strftime('%Y%m%d%H%M', time.localtime())
-
 def show_progress(e, e_total, train_loss, test_loss, train_acc, acc):
     print(f'[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
             (e, e_total, train_loss, test_loss, train_acc, acc), end='')

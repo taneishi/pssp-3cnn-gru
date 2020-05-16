@@ -5,7 +5,7 @@ import pickle
 import os
 
 import transformer.Constants as Constants
-from download_dataset import make_datasets
+from make_dataset import make_datasets
 
 def read_instances_from_file(inst_file, max_sent_len, keep_case):
     ''' Convert file into word seq lists and vocab '''
@@ -26,7 +26,7 @@ def read_instances_from_file(inst_file, max_sent_len, keep_case):
             else:
                 word_insts += [None]
 
-    print('[Info] Get {} instances from {}'.format(len(word_insts), inst_file))
+    print('Get {} instances from {}'.format(len(word_insts), inst_file))
 
     if trimmed_sent_count > 0:
         print('[Warning] {} instances are trimmed to the max sentence length {}.'
@@ -38,7 +38,7 @@ def build_vocab_idx(word_insts, min_word_count):
     ''' Trim vocab by number of occurence '''
 
     full_vocab = set(w for sent in word_insts for w in sent)
-    print('[Info] Original Vocabulary size =', len(full_vocab))
+    print('Original Vocabulary size =', len(full_vocab))
 
     word2idx = {
         Constants.BOS_WORD: Constants.BOS,
@@ -59,19 +59,14 @@ def build_vocab_idx(word_insts, min_word_count):
             else:
                 ignored_word_count += 1
 
-    print('[Info] Trimmed vocabulary size = {},'.format(len(word2idx)),
+    print('Trimmed vocabulary size = {},'.format(len(word2idx)),
           'each with minimum occurrence = {}'.format(min_word_count))
-    print("[Info] Ignored word count = {}".format(ignored_word_count))
+    print('Ignored word count = {}'.format(ignored_word_count))
     return word2idx
 
 def convert_instance_to_idx_seq(word_insts, word2idx):
     ''' Mapping words to idx sequence. '''
     return [[word2idx.get(w, Constants.UNK) for w in s] for s in word_insts]
-
-def load_picke_data(path):
-    with open(path, mode="rb") as f:
-        data = pickle.load(f)
-    return data
 
 def main():
     ''' Main function '''
@@ -134,27 +129,27 @@ def main():
         predefined_data = torch.load(opt.vocab)
         assert 'dict' in predefined_data
 
-        print('[Info] Pre-defined vocabulary found.')
+        print('Pre-defined vocabulary found.')
         src_word2idx = predefined_data['dict']['src']
         tgt_word2idx = predefined_data['dict']['tgt']
     else:
         if opt.share_vocab:
-            print('[Info] Build shared vocabulary for source and target.')
+            print('Build shared vocabulary for source and target.')
             word2idx = build_vocab_idx(
                 train_src_word_insts + train_tgt_word_insts, opt.min_word_count)
             src_word2idx = tgt_word2idx = word2idx
         else:
-            print('[Info] Build vocabulary for source.')
+            print('Build vocabulary for source.')
             src_word2idx = build_vocab_idx(train_src_word_insts, opt.min_word_count)
-            print('[Info] Build vocabulary for target.')
+            print('Build vocabulary for target.')
             tgt_word2idx = build_vocab_idx(train_tgt_word_insts, opt.min_word_count)
 
     # word to index
-    print('[Info] Convert source word instances into sequences of word index.')
+    print('Convert source word instances into sequences of word index.')
     train_src_insts = convert_instance_to_idx_seq(train_src_word_insts, src_word2idx)
     valid_src_insts = convert_instance_to_idx_seq(valid_src_word_insts, src_word2idx)
 
-    print('[Info] Convert target word instances into sequences of word index.')
+    print('Convert target word instances into sequences of word index.')
     train_tgt_insts = convert_instance_to_idx_seq(train_tgt_word_insts, tgt_word2idx)
     valid_tgt_insts = convert_instance_to_idx_seq(valid_tgt_word_insts, tgt_word2idx)
 
@@ -170,9 +165,8 @@ def main():
             'src': valid_src_insts,
             'tgt': valid_tgt_insts}}
 
-    print('[Info] Dumping the processed data to pickle file', opt.save_data)
+    print('Dumping the processed data to pickle file', opt.save_data)
     torch.save(data, opt.save_data)
-    print('[Info] Finish.')
 
 if __name__ == '__main__':
     main()
