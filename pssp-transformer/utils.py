@@ -20,10 +20,10 @@ def save_picke(data, save_path):
 def args2json(data, path, print_args=True):
     data = vars(data)
     if print_args:
-        print(f'\n+ ---------------------------')
+        print('\n+ ---------------------------')
         for k, v in data.items():
             print(f'  {k.upper()} : {v}')
-        print(f'+ ---------------------------\n')
+        print('+ ---------------------------\n')
 
     with open(os.path.join(path, 'args.json'), 'w') as f:
         json.dump(data, f)
@@ -55,15 +55,12 @@ def acid_accuracy(out, target, seq_len):
 
     return np.divide(count_2, count_1, out=np.zeros(N_STATE), where=count_1!=0)
 
-def load_gz(path): # load a .npy.gz file
-    return np.load(path)
-
 def timestamp():
     return time.strftime('%Y%m%d%H%M', time.localtime())
 
 def show_progress(e, e_total, train_loss, test_loss, train_acc, acc):
-    print(f'[{e:3d}/{e_total:3d}] train_loss:{train_loss:.2f}, '\
-          f'test_loss:{test_loss:.2f}, train_acc:{train_acc:.3f}, acc:{acc:.3f}', end='')
+    print(f'[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
+            (e, e_total, train_loss, test_loss, train_acc, acc), end='')
 
 def save_history(history, save_dir):
     save_path = os.path.join(save_dir, 'history.npy')

@@ -1,28 +1,18 @@
 # Original Code : https://github.com/alrojo/CB513/blob/master/data.py
 import numpy as np
-from utils import load_gz, save_text, save_picke
+from utils import save_text, save_picke
 import subprocess
 import os
 
 TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
 TEST_PATH = '../pssp-data/cb513+profile_split1.npy.gz'
 
-TRAIN_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cullpdb+profile_6133_filtered.npy.gz'
-TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_split1.npy.gz'
-
 AA_PATH = lambda key : f'../pssp-data/aa_{key}.txt'
 SP_PATH = lambda key : f'../pssp-data/sp_{key}.pkl'
 PSS_PATH = lambda key : f'../pssp-data/pss_{key}.txt'
 
-def download_dataset():
-    print('[Info] Downloading CB513 dataset ...')
-    if not (os.path.isfile(TRAIN_PATH) and os.path.isfile(TEST_PATH)):
-        os.makedirs('../pssp-data', exist_ok=True)
-        os.system(f'wget -O {TRAIN_PATH} {TRAIN_URL}')
-        os.system(f'wget -O {TEST_PATH} {TEST_URL}')
-
 def make_datasets():
-    print('[Info] Making datasets ...')
+    print('Making datasets ...')
 
     # train dataset
     X_train, y_train, seq_len_train = make_dataset(TRAIN_PATH)
@@ -33,7 +23,7 @@ def make_datasets():
     make_dataset_for_transformer(X_test, y_test, seq_len_test, 'test')
 
 def make_dataset(path):
-    data = load_gz(path)
+    data = np.load(path)
     data = data.reshape(-1, 700, 57)
 
     idx = np.append(np.arange(21), np.arange(35, 56))
@@ -58,12 +48,13 @@ def make_dataset_for_transformer(X, y, seq_len, key):
     amino_acid_array = get_amino_acid_array(X_amino, seq_len)
     save_path = AA_PATH(key)
     save_text(amino_acid_array, save_path)
-    print(f'[Info] Saved amino_acid_array for {key} in {save_path}')
+    print(f'Saved amino_acid_array for {key} in {save_path}')
 
     pss_array = get_pss_array(y, seq_len)
+
     save_path = PSS_PATH(key)
     save_text(pss_array, save_path)
-    print(f'[Info] Saved pss_array for {key} in {save_path}')
+    print(f'Saved pss_array for {key} in {save_path}')
 
 def get_amino_acid_array(X_amino, seq_len):
     amino_acid = ['A', 'C', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M',

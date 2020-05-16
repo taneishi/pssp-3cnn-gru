@@ -4,8 +4,8 @@ PyTorch implementations of protein secondary structure prediction on CB513.
 
 I implemented them based on https://github.com/alrojo/CB513 and https://github.com/jadore801120/attention-is-all-you-need-pytorch.
 
+## Dataset
 
-# Dataset
 I used CB513 dataset of https://github.com/alrojo/CB513.
 
 |sequence length (train)|sequence length (test)|
@@ -20,23 +20,21 @@ I used CB513 dataset of https://github.com/alrojo/CB513.
 |:-:|:-:|
 |![](https://github.com/takatex/protein-secondary-structure-prediction/blob/master/pssp-data/secondary_structure_train.png)|![](https://github.com/takatex/protein-secondary-structure-prediction/blob/master/pssp-data/secondary_structure_test.png)|
 
-
-# Usage
+## Usage
 You can get more infomations by adding `-h` option.
 
-## pssp-nn
+### pssp-nn
 ```
 python main.py
 ```
 
-## pssp-transformer
+### pssp-transformer
 ```
 python preprocess.py
 python main.py
 ```
 
-
-# Acknowledgement
+## Acknowledgement
 - https://github.com/alrojo/CB513 
 - https://github.com/jadore801120/attention-is-all-you-need-pytorch
 - [Li, Zhen; Yu, Yizhou, Protein Secondary Structure Prediction Using Cascaded Convolutional and Recurrent Neural Networks, 2016.](https://arxiv.org/pdf/1604.07176.pdf)

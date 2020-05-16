@@ -5,7 +5,7 @@ import pickle
 import os
 
 import transformer.Constants as Constants
-from download_dataset import download_dataset, make_datasets
+from download_dataset import make_datasets
 
 def read_instances_from_file(inst_file, max_sent_len, keep_case):
     ''' Convert file into word seq lists and vocab '''
@@ -95,7 +95,6 @@ def main():
     opt.max_token_seq_len = opt.max_word_seq_len + 2 # include the <s> and </s>
 
     if not os.path.isfile(opt.save_data):
-        download_dataset()
         make_datasets()
 
     # Training set
