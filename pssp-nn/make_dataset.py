@@ -39,6 +39,6 @@ if __name__ == '__main__':
     X_train, y_train, seq_len_train = make_dataset(TRAIN_FILE)
     X_test, y_test, seq_len_test = make_dataset(TEST_FILE)
 
-    np.savez_compressed('dataset.npz',
+    np.savez_compressed('../pssp-data/dataset.npz',
             X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
             X_test=X_test, y_test=y_test, seq_len_test=seq_len_test)

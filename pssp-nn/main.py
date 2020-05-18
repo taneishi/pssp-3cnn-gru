@@ -1,5 +1,4 @@
 import numpy as np
-import torch.nn.functional as F
 import torch.utils.data
 import torch.nn as nn
 import torch
@@ -7,8 +6,7 @@ import timeit
 import argparse
 import os
 
-N_STATE = 8
-N_AA = 21
+from model import Net
 
 class CrossEntropy(object):
     def __init__(self):
@@ -19,10 +17,8 @@ class CrossEntropy(object):
         return loss
 
 def accuracy(out, target, seq_len):
-    '''
-    out.shape : (batch_size, seq_len, class_num)
-    target.shape : (class_num, seq_len)
-    '''
+    '''out.shape : (batch_size, seq_len, class_num)
+    target.shape : (class_num, seq_len)'''
     out = out.cpu().detach().numpy()
     target = target.cpu().detach().numpy()
     seq_len = seq_len.cpu().detach().numpy()
@@ -42,49 +38,6 @@ class ProteinDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx], self.seq_len[idx]
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-
-        # Conv1d(in_channels, out_channels, kernel_size, stride, padding)
-        conv_hidden_size = 64
-
-        self.conv1 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 3, 1, 3 // 2), nn.ReLU())
-
-        self.conv2 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 7, 1, 7 // 2), nn.ReLU())
-
-        self.conv3 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 11, 1, 11 // 2), nn.ReLU())
-
-        # LSTM(input_size, hidden_size, num_layers, bias, batch_first, dropout, bidirectional)
-        rnn_hidden_size = 256
-
-        self.brnn = nn.GRU(conv_hidden_size*3, rnn_hidden_size, 3, True, True, 0.5, True)
-
-        self.fc = nn.Sequential(
-                nn.Linear(rnn_hidden_size*2+conv_hidden_size*3, 128),
-                nn.ReLU(),
-                nn.Linear(128, N_STATE),
-                nn.ReLU())
-
-    def forward(self, x):
-        # obtain multiple local contextual feature map
-        conv_out = torch.cat([self.conv1(x), self.conv2(x), self.conv3(x)], dim=1)
-
-        # Turn (batch_size x hidden_size x seq_len)
-        # into (batch_size x seq_len x hidden_size)
-        conv_out = conv_out.transpose(1, 2)
-
-        # bidirectional rnn
-        out, _ = self.brnn(conv_out)
-
-        out = torch.cat([conv_out, out], dim=2)
-        # print(out.sum())
-
-        # Output shape is (batch_size x seq_len x classnum)
-        out = self.fc(out)
-        out = F.softmax(out, dim=2)
-        return out
-
 def train(model, device, epoch, train_loader, optimizer, loss_function):
     train_loss = 0
     model.train()
@@ -99,7 +52,7 @@ def train(model, device, epoch, train_loader, optimizer, loss_function):
         loss.backward()
         optimizer.step()
 
-        print('\repoch%3d [%3d/%3d] train_loss %6.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
+        print('\repoch%3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
 
 def test(model, device, test_loader, loss_function):
     test_loss = 0
@@ -114,15 +67,14 @@ def test(model, device, test_loader, loss_function):
         test_loss += loss.item() / len(data)
         acc += accuracy(out, target, seq_len)
     
-    print(' test_loss %6.3f test_acc %5.3f' % (test_loss / index, acc / index), end='')
+    print(' test_loss %5.3f test_acc %5.3f' % (test_loss / index, acc / index), end='')
 
     return test_loss, acc
 
 def main():
     # params
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('-e', '--epochs', type=int, default=100,
-                        help='The number of epochs to run (default: 100)')
+    parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('-b', '--batch_size_train', type=int, default=100,
                         help='input batch size for training (default: 100)')
     parser.add_argument('-b_test', '--batch_size_test', type=int, default=1000,
@@ -133,7 +85,7 @@ def main():
     print('Using %s device.' % device)
 
     # laod dataset 
-    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('dataset.npz').values()
+    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('../pssp-data/dataset.npz').values()
 
     train_dataset = ProteinDataset(X_train, y_train, seq_len_train)
     test_dataset = ProteinDataset(X_test, y_test, seq_len_test)
@@ -141,7 +93,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size_train, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size_test, shuffle=False)
 
-    print('train %d test %d %d-state' % (len(train_loader.dataset), len(test_loader.dataset), N_STATE))
+    print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
     # model, loss_function, optimizer
     model = Net().to(device)
