@@ -3,19 +3,16 @@ import torch.nn as nn
 import torch
 import timeit
 
-N_STATE = 8
-N_AA = 21
-
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, n_aa=21, n_state=8):
         super(Net, self).__init__()
 
         # Conv1d(in_channels, out_channels, kernel_size, stride, padding)
         conv_hidden_size = 64
 
-        self.conv1 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 3, 1, 3 // 2), nn.ReLU())
-        self.conv2 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 7, 1, 7 // 2), nn.ReLU())
-        self.conv3 = nn.Sequential(nn.Conv1d(N_AA, conv_hidden_size, 11, 1, 11 // 2), nn.ReLU())
+        self.conv1 = nn.Sequential(nn.Conv1d(n_aa, conv_hidden_size, 3, 1, 3 // 2), nn.ReLU())
+        self.conv2 = nn.Sequential(nn.Conv1d(n_aa, conv_hidden_size, 7, 1, 7 // 2), nn.ReLU())
+        self.conv3 = nn.Sequential(nn.Conv1d(n_aa, conv_hidden_size, 11, 1, 11 // 2), nn.ReLU())
 
         # LSTM(input_size, hidden_size, num_layers, bias, batch_first, dropout, bidirectional)
         rnn_hidden_size = 256
@@ -25,7 +22,7 @@ class Net(nn.Module):
         self.fc = nn.Sequential(
                 nn.Linear(rnn_hidden_size*2+conv_hidden_size*3, 128),
                 nn.ReLU(),
-                nn.Linear(128, N_STATE),
+                nn.Linear(128, n_state),
                 nn.ReLU())
 
     def forward(self, x):
