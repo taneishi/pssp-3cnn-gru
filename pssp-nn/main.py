@@ -115,7 +115,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('--modelfile', nargs='?')
+    parser.add_argument('modelfile', nargs='?')
     parser.add_argument('-e', '--epochs', type=int, default=100)
     parser.add_argument('-b', '--batch_size_train', type=int, default=100, help='input batch size for training (default: 100)')
     parser.add_argument('-b_test', '--batch_size_test', type=int, default=1000, help='input batch size for testing (default: 1000)')
