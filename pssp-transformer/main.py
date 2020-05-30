@@ -5,12 +5,12 @@ import torch.utils.data
 import argparse
 import math
 import timeit
-import os
+import json
+
 from transformer.Models import Transformer
 from transformer.Optim import ScheduledOptim
 import transformer.Constants as Constants
 from dataset import TranslationDataset, paired_collate_fn
-from utils import args2json, save_model, save_history, show_progress
 
 def toseq(tensor):
     return ''.join(map(str, tensor.tolist()))
@@ -113,7 +113,7 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
         n_word_total += n_word
         n_word_correct += n_correct
 
-    print(' time %4.1f' % (timeit.default_timer() - epoch_start))
+    print(' time %5.2f' % (timeit.default_timer() - epoch_start))
 
     loss_per_word = total_loss/n_word_total
     accuracy = n_word_correct/n_word_total
@@ -176,7 +176,8 @@ def train(model, training_data, validation_data, optimizer, device, opt):
         valid_accus += [valid_accu]
 
         if valid_accu >= max(valid_accus):
-            save_model(model, opt.result_dir)
+            save_path = '%s/%s' % (opt.result_dir, 'model.pth')
+            torch.save(model.state_dict(), save_path)
             print('[Info] The checkpoint file has been updated.')
 
         if log_train_file and log_valid_file:
@@ -188,9 +189,11 @@ def train(model, training_data, validation_data, optimizer, device, opt):
                     epoch=e, loss=valid_loss,
                     ppl=math.exp(min(valid_loss, 100)), accu=100*valid_accu))
 
-        show_progress(e+1, opt.epoch, train_loss, valid_loss, train_accu, valid_accu)
+        print(f'[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
+                (e+1, opt.epoch, train_loss, valid_loss, train_accu, valid_accu), end='')
 
-    save_history(history, opt.result_dir)
+    save_path = '%s/%s' % (opt.result_dir, 'history.npy')
+    np.save(save_path, history)
 
 def main():
     ''' Main function '''
@@ -225,8 +228,13 @@ def main():
     opt = parser.parse_args()
     opt.d_word_vec = opt.d_model
 
-    os.makedirs(opt.result_dir, exist_ok=True)
-    args2json(opt, opt.result_dir)
+    print('\n+ ---------------------------')
+    for k, v in vars(opt).items():
+        print(f'  {k.upper()} : {v}')
+    print('+ ---------------------------\n')
+
+    with open('%s/%s' % (opt.result_dir, 'args.json'), 'w') as f:
+        json.dump(vars(opt), f)
 
     #========= Loading Dataset =========#
     data = torch.load(opt.data)
@@ -245,7 +253,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
-    print(opt)
+    print(vars(opt))
 
     transformer = Transformer(
         opt.src_vocab_size,

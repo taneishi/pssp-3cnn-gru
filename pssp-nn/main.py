@@ -105,12 +105,11 @@ def main(args):
         train(train_loader, model, optimizer, loss_function, epoch)
         test_loss = test(test_loader, model, loss_function)
 
-        print(' %5.1f sec' % (timeit.default_timer() - epoch_start))
+        print(' %5.2f sec' % (timeit.default_timer() - epoch_start))
 
         test_losses.append(test_loss)
 
         if len(test_losses) > 1 and test_loss < min(test_losses[:-1]):
-            # save trained model
             torch.save(model.state_dict(), 'model/%5.3f.pth' % test_loss)
 
 if __name__ == '__main__':

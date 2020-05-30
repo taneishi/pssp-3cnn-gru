@@ -1,6 +1,5 @@
 # Original Code : https://github.com/alrojo/CB513/blob/master/data.py
 import numpy as np
-from utils import save_text, save_picke
 import subprocess
 import os
 
@@ -47,13 +46,16 @@ def make_dataset_for_transformer(X, y, seq_len, key):
 
     amino_acid_array = get_amino_acid_array(X_amino, seq_len)
     save_path = AA_PATH(key)
-    save_text(amino_acid_array, save_path)
+    with open(save_path, mode='w') as f:
+        f.write('\n'.join(amino_acid_array))
+
     print(f'Saved amino_acid_array for {key} in {save_path}')
 
     pss_array = get_pss_array(y, seq_len)
 
     save_path = PSS_PATH(key)
-    save_text(pss_array, save_path)
+    with open(save_path, mode='w') as f:
+        f.write('\n'.join(pss_array))
     print(f'Saved pss_array for {key} in {save_path}')
 
 def get_amino_acid_array(X_amino, seq_len):
