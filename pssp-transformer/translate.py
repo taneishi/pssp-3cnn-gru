@@ -2,7 +2,6 @@
 import torch
 import torch.utils.data
 import argparse
-#from tqdm import tqdm
 from dataset import collate_fn, TranslationDataset
 from transformer.Translator import Translator
 from preprocess import read_instances_from_file, convert_instance_to_idx_seq
@@ -55,7 +54,6 @@ def main():
     translator = Translator(opt)
 
     with open(opt.output, 'w') as f:
-        #for batch in tqdm(test_loader, mininterval=2, desc='  - (Test)', leave=False):
         for batch in test_loader:
             all_hyp, all_scores = translator.translate_batch(*batch)
             for idx_seqs in all_hyp:

@@ -1,7 +1,6 @@
 # Handling the data io
 import torch
 import argparse
-import pickle
 import os
 
 import transformer.Constants as Constants
