@@ -1,13 +1,4 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
-
-# data
-*.npy.gz
-aa_*.txt
-pss_*.txt
-
-# log
-log*
-
-# result
-result*
+data
+result
+model
