@@ -190,7 +190,7 @@ def main():
     parser.add_argument('-embs_share_weight', action='store_true')
     parser.add_argument('-proj_share_weight', action='store_true')
 
-    parser.add_argument('-result_dir', type=str, default='./result')
+    parser.add_argument('-result_dir', type=str, default='model')
 
     parser.add_argument('-label_smoothing', action='store_true')
 

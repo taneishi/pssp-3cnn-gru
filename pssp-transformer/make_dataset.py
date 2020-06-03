@@ -13,11 +13,14 @@ AA_PATH = lambda key : f'data/aa_{key}.txt'
 SP_PATH = lambda key : f'data/sp_{key}.pkl'
 PSS_PATH = lambda key : f'data/pss_{key}.txt'
 
-def download_dataset(path, url, data_dir='data'):
+def download_datasets(data_dir='data'):
     os.makedirs(data_dir, exist_ok=True)
-    if not os.path.isfile(os.path.join(data_dir, path)):
-        print('Downloading %s ...' % path)
-        os.system('wget -O %s %s' % (os.path.join(data_dir, path), url))
+
+    print('Downloading %s ...' % TRAIN_URL)
+    os.system('wget -c --quiet -O %s %s' % (TRAIN_PATH, TRAIN_URL))
+
+    print('Downloading %s ...' % TEST_URL)
+    os.system('wget -c --quiet -O %s %s' % (TEST_PATH, TEST_URL))
 
 def make_datasets():
     print('Making datasets ...')
@@ -32,14 +35,14 @@ def make_datasets():
 
 def make_dataset(path):
     data = np.load(path)
-    data = data.reshape(-1, 700, 57)
+    data = data.reshape(-1, 700, 57) # original 57 features
 
-    idx = np.append(np.arange(21), np.arange(35, 56))
+    idx = np.append(np.arange(21), np.arange(35, 56)) # 20-residues + non-seq + profiles
     X = data[:, :, idx]
     X = X.transpose(0, 2, 1)
     X = X.astype('float32')
 
-    y = data[:, :, 22:30]
+    y = data[:, :, 22:30] # 8-state
     y = np.array([np.dot(yi, np.arange(8)) for yi in y])
     y = y.astype('float32')
 

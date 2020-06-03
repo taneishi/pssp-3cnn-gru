@@ -7,11 +7,12 @@ TEST_FILE = 'cb513+profile_split1.npy.gz'
 TRAIN_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cullpdb+profile_6133_filtered.npy.gz'
 TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_split1.npy.gz'
 
-def download_dataset(path, url, data_dir='data'):
+def download_datasets(data_dir='data'):
     os.makedirs(data_dir, exist_ok=True)
-    if not os.path.isfile(os.path.join(data_dir, path)):
-        print('Downloading %s ...' % path)
-        os.system('wget -O %s %s' % (os.path.join(data_dir, path), url))
+    print('Downloading %s ...' % TRAIN_URL)
+    os.system('wget -c --quiet -O %s %s' % (os.path.join(data_dir, TRAIN_FILE), TRAIN_URL))
+    print('Downloading %s ...' % TEST_URL)
+    os.system('wget -c --quiet -O %s %s' % (os.path.join(data_dir, TEST_FILE), TEST_URL))
 
 def make_dataset(path, data_dir='data'):
     data = np.load(os.path.join(data_dir, path))
@@ -32,8 +33,7 @@ def make_dataset(path, data_dir='data'):
     return X, y, seq_len
 
 if __name__ == '__main__':
-    download_dataset(TRAIN_FILE, TRAIN_URL)
-    download_dataset(TEST_FILE, TEST_URL)
+    download_datasets()
 
     print('Build dataset files ...')
     X_train, y_train, seq_len_train = make_dataset(TRAIN_FILE)
