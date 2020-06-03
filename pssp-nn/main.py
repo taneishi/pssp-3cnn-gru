@@ -17,7 +17,7 @@ class CrossEntropy(object):
         return loss
 
 def data_load(args, device):
-    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('../pssp-data/dataset.npz').values()
+    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('data/dataset.npz').values()
 
     X_train = torch.FloatTensor(X_train).to(device)
     y_train = torch.LongTensor(y_train).to(device)

@@ -12,9 +12,6 @@ from transformer.Optim import ScheduledOptim
 import transformer.Constants as Constants
 from dataset import TranslationDataset, paired_collate_fn
 
-def toseq(tensor):
-    return ''.join(map(str, tensor.tolist()))
-
 def cal_performance(pred, gold, smoothing=False):
     ''' Apply label smoothing if needed '''
 
@@ -115,8 +112,8 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
 
     print(' time %5.2f' % (timeit.default_timer() - epoch_start))
 
-    loss_per_word = total_loss/n_word_total
-    accuracy = n_word_correct/n_word_total
+    loss_per_word = total_loss / n_word_total
+    accuracy = n_word_correct / n_word_total
     return loss_per_word, accuracy
 
 def eval_epoch(model, validation_data, device):
@@ -145,66 +142,41 @@ def eval_epoch(model, validation_data, device):
             n_word_total += n_word
             n_word_correct += n_correct
 
-    loss_per_word = total_loss/n_word_total
-    accuracy = n_word_correct/n_word_total
+    loss_per_word = total_loss / n_word_total
+    accuracy = n_word_correct / n_word_total
     return loss_per_word, accuracy
 
 def train(model, training_data, validation_data, optimizer, device, opt):
-    ''' Start training '''
-    log_train_file = None
-    log_valid_file = None
-
-    if opt.log:
-        log_train_file = opt.log + '.train.log'
-        log_valid_file = opt.log + '.valid.log'
-
-        print('[Info] Training performance will be written to file: {} and {}'.format(
-            log_train_file, log_valid_file))
-
-        with open(log_train_file, 'w') as log_tf, open(log_valid_file, 'w') as log_vf:
-            log_tf.write('epoch,loss,ppl,accuracy\n')
-            log_vf.write('epoch,loss,ppl,accuracy\n')
-
     history = []
     valid_accus = []
-    for e in range(opt.epoch):
+    for epoch in range(opt.epoch+1):
         train_loss, train_accu = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
-
         valid_loss, valid_accu = eval_epoch(model, validation_data, device)
 
         history.append([train_loss, train_accu, valid_loss, valid_accu])
         valid_accus += [valid_accu]
 
         if valid_accu >= max(valid_accus):
-            save_path = '%s/%s' % (opt.result_dir, 'model.pth')
+            save_path = '%s/model.pth' % opt.result_dir
             torch.save(model.state_dict(), save_path)
             print('[Info] The checkpoint file has been updated.')
 
-        if log_train_file and log_valid_file:
-            with open(log_train_file, 'a') as log_tf, open(log_valid_file, 'a') as log_vf:
-                log_tf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
-                    epoch=e, loss=train_loss,
-                    ppl=math.exp(min(train_loss, 100)), accu=100*train_accu))
-                log_vf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
-                    epoch=e, loss=valid_loss,
-                    ppl=math.exp(min(valid_loss, 100)), accu=100*valid_accu))
+        print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
+                (epoch, opt.epoch, train_loss, valid_loss, train_accu, valid_accu), end='')
 
-        print(f'[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
-                (e+1, opt.epoch, train_loss, valid_loss, train_accu, valid_accu), end='')
-
-    save_path = '%s/%s' % (opt.result_dir, 'history.npy')
+    save_path = '%s/history.npy' % opt.result_dir
     np.save(save_path, history)
 
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-data', default='../pssp-data/dataset.pt')
+    parser.add_argument('-data', default='data/dataset.pt')
 
     parser.add_argument('-epoch', type=int, default=100)
     parser.add_argument('-batch_size', type=int, default=20)
 
-    #parser.add_argument('-d_word_vec', type=int, default=512)
+    parser.add_argument('-d_word_vec', type=int, default=256)
     parser.add_argument('-d_model', type=int, default=256)
     parser.add_argument('-d_inner_hid', type=int, default=512)
     parser.add_argument('-d_k', type=int, default=64)
@@ -218,22 +190,17 @@ def main():
     parser.add_argument('-embs_share_weight', action='store_true')
     parser.add_argument('-proj_share_weight', action='store_true')
 
-    parser.add_argument('-log', default=None)
     parser.add_argument('-result_dir', type=str, default='./result')
-    # parser.add_argument('-save_model', type=str, default='model')
-    # parser.add_argument('-save_mode', type=str, choices=['all', 'best'], default='best')
 
     parser.add_argument('-label_smoothing', action='store_true')
 
+    parser.add_argument('--cpu', action='store_true')
+
     opt = parser.parse_args()
-    opt.d_word_vec = opt.d_model
 
-    print('\n+ ---------------------------')
-    for k, v in vars(opt).items():
-        print(f'  {k.upper()} : {v}')
-    print('+ ---------------------------\n')
+    print(vars(opt))
 
-    with open('%s/%s' % (opt.result_dir, 'args.json'), 'w') as f:
+    with open('%s/args.json' % opt.result_dir, 'w') as f:
         json.dump(vars(opt), f)
 
     #========= Loading Dataset =========#
@@ -250,7 +217,7 @@ def main():
         assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
             'The src/tgt word2idx table are different but asked to share word embedding.'
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if not opt.cpu and torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
     print(vars(opt))

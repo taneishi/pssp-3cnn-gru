@@ -7,13 +7,13 @@ TEST_FILE = 'cb513+profile_split1.npy.gz'
 TRAIN_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cullpdb+profile_6133_filtered.npy.gz'
 TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_split1.npy.gz'
 
-def download_dataset(path, url, data_dir='../pssp-data'):
+def download_dataset(path, url, data_dir='data'):
     os.makedirs(data_dir, exist_ok=True)
     if not os.path.isfile(os.path.join(data_dir, path)):
         print('Downloading %s ...' % path)
         os.system('wget -O %s %s' % (os.path.join(data_dir, path), url))
 
-def make_dataset(path, data_dir='../pssp-data'):
+def make_dataset(path, data_dir='data'):
     data = np.load(os.path.join(data_dir, path))
     data = data.reshape(-1, 700, 57) # original 57 features
 
@@ -39,6 +39,6 @@ if __name__ == '__main__':
     X_train, y_train, seq_len_train = make_dataset(TRAIN_FILE)
     X_test, y_test, seq_len_test = make_dataset(TEST_FILE)
 
-    np.savez_compressed('../pssp-data/dataset.npz',
+    np.savez_compressed('data/dataset.npz',
             X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
             X_test=X_test, y_test=y_test, seq_len_test=seq_len_test)

@@ -3,12 +3,21 @@ import numpy as np
 import subprocess
 import os
 
-TRAIN_PATH = '../pssp-data/cullpdb+profile_6133_filtered.npy.gz'
-TEST_PATH = '../pssp-data/cb513+profile_split1.npy.gz'
+TRAIN_PATH = 'data/cullpdb+profile_6133_filtered.npy.gz'
+TEST_PATH = 'data/cb513+profile_split1.npy.gz'
 
-AA_PATH = lambda key : f'../pssp-data/aa_{key}.txt'
-SP_PATH = lambda key : f'../pssp-data/sp_{key}.pkl'
-PSS_PATH = lambda key : f'../pssp-data/pss_{key}.txt'
+TRAIN_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cullpdb+profile_6133_filtered.npy.gz'
+TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_split1.npy.gz'
+
+AA_PATH = lambda key : f'data/aa_{key}.txt'
+SP_PATH = lambda key : f'data/sp_{key}.pkl'
+PSS_PATH = lambda key : f'data/pss_{key}.txt'
+
+def download_dataset(path, url, data_dir='data'):
+    os.makedirs(data_dir, exist_ok=True)
+    if not os.path.isfile(os.path.join(data_dir, path)):
+        print('Downloading %s ...' % path)
+        os.system('wget -O %s %s' % (os.path.join(data_dir, path), url))
 
 def make_datasets():
     print('Making datasets ...')
