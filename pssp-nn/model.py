@@ -1,7 +1,6 @@
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-import timeit
 
 class Net(nn.Module):
     def __init__(self, n_aa=21, n_state=8):
@@ -43,4 +42,3 @@ class Net(nn.Module):
         out = self.fc(out)
         out = F.softmax(out, dim=2)
         return out
-

@@ -60,7 +60,6 @@ def main():
                 for idx_seq in idx_seqs:
                     pred_line = ' '.join([test_loader.dataset.tgt_idx2word[idx] for idx in idx_seq])
                     f.write(pred_line + '\n')
-    print('[Info] Finished.')
 
 if __name__ == '__main__':
     main()

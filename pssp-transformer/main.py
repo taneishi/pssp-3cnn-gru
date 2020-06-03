@@ -40,7 +40,7 @@ def cal_loss(pred, gold, smoothing):
 
         non_pad_mask = gold.ne(Constants.PAD)
         loss = -(one_hot * log_prb).sum(dim=1)
-        loss = loss.masked_select(non_pad_mask).sum()  # average later
+        loss = loss.masked_select(non_pad_mask).sum() # average later
     else:
         # print(gold)
         loss = F.cross_entropy(pred, gold, ignore_index=Constants.PAD, reduction='sum')
@@ -55,7 +55,6 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['train']['src'],
             tgt_insts=data['train']['tgt']),
-        num_workers=2,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn,
         shuffle=True)
@@ -66,7 +65,6 @@ def prepare_dataloaders(data, opt):
             tgt_word2idx=data['dict']['tgt'],
             src_insts=data['valid']['src'],
             tgt_insts=data['valid']['tgt']),
-        num_workers=2,
         batch_size=opt.batch_size,
         collate_fn=paired_collate_fn)
     return train_loader, valid_loader
@@ -148,59 +146,49 @@ def eval_epoch(model, validation_data, device):
 
 def train(model, training_data, validation_data, optimizer, device, opt):
     history = []
-    valid_accus = []
+    valid_accs = []
     for epoch in range(opt.epoch+1):
-        train_loss, train_accu = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
-        valid_loss, valid_accu = eval_epoch(model, validation_data, device)
+        train_loss, train_acc = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
+        valid_loss, valid_acc = eval_epoch(model, validation_data, device)
 
-        history.append([train_loss, train_accu, valid_loss, valid_accu])
-        valid_accus += [valid_accu]
+        history.append([train_loss, train_acc, valid_loss, valid_acc])
+        valid_accs += [valid_acc]
 
-        if valid_accu >= max(valid_accus):
-            save_path = '%s/model.pth' % opt.result_dir
+        if valid_acc >= max(valid_accs):
+            save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_acc)
             torch.save(model.state_dict(), save_path)
-            print('[Info] The checkpoint file has been updated.')
 
         print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
-                (epoch, opt.epoch, train_loss, valid_loss, train_accu, valid_accu), end='')
+                (epoch, opt.epoch, train_loss, valid_loss, train_acc, valid_acc), end='')
 
-    save_path = '%s/history.npy' % opt.result_dir
+    save_path = '%s/history.npy' % opt.model_dir
     np.save(save_path, history)
 
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
-
     parser.add_argument('-data', default='data/dataset.pt')
-
     parser.add_argument('-epoch', type=int, default=100)
     parser.add_argument('-batch_size', type=int, default=20)
-
     parser.add_argument('-d_word_vec', type=int, default=256)
     parser.add_argument('-d_model', type=int, default=256)
     parser.add_argument('-d_inner_hid', type=int, default=512)
     parser.add_argument('-d_k', type=int, default=64)
     parser.add_argument('-d_v', type=int, default=64)
-
     parser.add_argument('-n_head', type=int, default=8)
     parser.add_argument('-n_layers', type=int, default=2)
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
-
     parser.add_argument('-dropout', type=float, default=0.5)
     parser.add_argument('-embs_share_weight', action='store_true')
     parser.add_argument('-proj_share_weight', action='store_true')
-
-    parser.add_argument('-result_dir', type=str, default='model')
-
+    parser.add_argument('-model_dir', type=str, default='model')
     parser.add_argument('-label_smoothing', action='store_true')
-
     parser.add_argument('--cpu', action='store_true')
-
     opt = parser.parse_args()
 
     print(vars(opt))
 
-    with open('%s/args.json' % opt.result_dir, 'w') as f:
+    with open('%s/args.json' % opt.model_dir, 'w') as f:
         json.dump(vars(opt), f)
 
     #========= Loading Dataset =========#
@@ -219,8 +207,6 @@ def main():
 
     device = torch.device('cuda' if not opt.cpu and torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
-
-    print(vars(opt))
 
     transformer = Transformer(
         opt.src_vocab_size,

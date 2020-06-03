@@ -9,6 +9,8 @@ TEST_URL = 'http://www.princeton.edu/~jzthree/datasets/ICML2014/cb513+profile_sp
 
 def download_datasets(data_dir='data'):
     os.makedirs(data_dir, exist_ok=True)
+
+    # data acquisition
     print('Downloading %s ...' % TRAIN_URL)
     os.system('wget -c --quiet -O %s %s' % (os.path.join(data_dir, TRAIN_FILE), TRAIN_URL))
     print('Downloading %s ...' % TEST_URL)
