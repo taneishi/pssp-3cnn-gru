@@ -69,23 +69,20 @@ def convert_instance_to_idx_seq(word_insts, word2idx):
 
 def main():
     ''' Main function '''
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-data_dir', default='data')
     parser.add_argument('-train_src', default='aa_train.txt')
     parser.add_argument('-train_tgt', default='pss_train.txt')
-
     parser.add_argument('-valid_src', default='aa_test.txt')
     parser.add_argument('-valid_tgt', default='pss_test.txt')
-
     parser.add_argument('-save_data', default='data/dataset.pt')
     parser.add_argument('-max_len', '--max_word_seq_len', type=int, default=700)
     parser.add_argument('-min_word_count', type=int, default=5)
     parser.add_argument('-keep_case', action='store_true')
     parser.add_argument('-share_vocab', action='store_true')
     parser.add_argument('-vocab', default=None)
-
     opt = parser.parse_args()
+
     opt.max_token_seq_len = opt.max_word_seq_len + 2 # include the <s> and </s>
 
     download_datasets()

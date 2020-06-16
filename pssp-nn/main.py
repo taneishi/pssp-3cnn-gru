@@ -109,7 +109,7 @@ def main(args):
 
         test_losses.append(test_loss)
 
-        if len(test_losses) > 1 and test_loss < min(test_losses[:-1]):
+        if test_loss <= min(test_losses):
             torch.save(model.state_dict(), 'model/%5.3f.pth' % test_loss)
 
 if __name__ == '__main__':

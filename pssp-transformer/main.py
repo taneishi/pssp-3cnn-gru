@@ -146,15 +146,15 @@ def eval_epoch(model, validation_data, device):
 
 def train(model, training_data, validation_data, optimizer, device, opt):
     history = []
-    valid_accs = []
+    valid_acc = []
     for epoch in range(opt.epoch+1):
         train_loss, train_acc = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
         valid_loss, valid_acc = eval_epoch(model, validation_data, device)
 
         history.append([train_loss, train_acc, valid_loss, valid_acc])
-        valid_accs += [valid_acc]
+        valid_acc += [valid_acc]
 
-        if valid_acc >= max(valid_accs):
+        if max(valid_acc) <= valid_acc:
             save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_acc)
             torch.save(model.state_dict(), save_path)
 
