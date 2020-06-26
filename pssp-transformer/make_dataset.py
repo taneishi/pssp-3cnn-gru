@@ -60,11 +60,9 @@ def make_dataset_for_transformer(X, y, seq_len, key):
     save_path = AA_PATH(key)
     with open(save_path, mode='w') as f:
         f.write('\n'.join(amino_acid_array))
-
     print(f'Saved amino_acid_array for {key} in {save_path}')
 
     pss_array = get_pss_array(y, seq_len)
-
     save_path = PSS_PATH(key)
     with open(save_path, mode='w') as f:
         f.write('\n'.join(pss_array))

@@ -146,15 +146,15 @@ def eval_epoch(model, validation_data, device):
 
 def train(model, training_data, validation_data, optimizer, device, opt):
     history = []
-    valid_acc = []
+    valid_accs = []
     for epoch in range(opt.epoch+1):
         train_loss, train_acc = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
         valid_loss, valid_acc = eval_epoch(model, validation_data, device)
 
         history.append([train_loss, train_acc, valid_loss, valid_acc])
-        valid_acc += [valid_acc]
+        valid_accs.append(valid_acc)
 
-        if max(valid_acc) <= valid_acc:
+        if max(valid_accs) <= valid_acc:
             save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_acc)
             torch.save(model.state_dict(), save_path)
 
@@ -167,22 +167,22 @@ def train(model, training_data, validation_data, optimizer, device, opt):
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('-data', default='data/dataset.pt')
-    parser.add_argument('-epoch', type=int, default=100)
-    parser.add_argument('-batch_size', type=int, default=20)
-    parser.add_argument('-d_word_vec', type=int, default=256)
-    parser.add_argument('-d_model', type=int, default=256)
-    parser.add_argument('-d_inner_hid', type=int, default=512)
-    parser.add_argument('-d_k', type=int, default=64)
-    parser.add_argument('-d_v', type=int, default=64)
-    parser.add_argument('-n_head', type=int, default=8)
-    parser.add_argument('-n_layers', type=int, default=2)
-    parser.add_argument('-n_warmup_steps', type=int, default=4000)
-    parser.add_argument('-dropout', type=float, default=0.5)
-    parser.add_argument('-embs_share_weight', action='store_true')
-    parser.add_argument('-proj_share_weight', action='store_true')
-    parser.add_argument('-model_dir', type=str, default='model')
-    parser.add_argument('-label_smoothing', action='store_true')
+    parser.add_argument('--data', default='data/dataset.pt')
+    parser.add_argument('--epoch', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=20)
+    parser.add_argument('--d_word_vec', type=int, default=256)
+    parser.add_argument('--d_model', type=int, default=256)
+    parser.add_argument('--d_inner_hid', type=int, default=512)
+    parser.add_argument('--d_k', type=int, default=64)
+    parser.add_argument('--d_v', type=int, default=64)
+    parser.add_argument('--n_head', type=int, default=8)
+    parser.add_argument('--n_layers', type=int, default=2)
+    parser.add_argument('--n_warmup_steps', type=int, default=4000)
+    parser.add_argument('--dropout', type=float, default=0.5)
+    parser.add_argument('--embs_share_weight', action='store_true')
+    parser.add_argument('--proj_share_weight', action='store_true')
+    parser.add_argument('--model_dir', type=str, default='model')
+    parser.add_argument('--label_smoothing', action='store_true')
     parser.add_argument('--cpu', action='store_true')
     opt = parser.parse_args()
 
