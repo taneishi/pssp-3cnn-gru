@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -160,9 +161,6 @@ def train(model, training_data, validation_data, optimizer, device, opt):
 
         print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
                 (epoch, opt.epoch, train_loss, valid_loss, train_acc, valid_acc), end='')
-
-    save_path = '%s/history.npy' % opt.model_dir
-    np.save(save_path, history)
 
 def main():
     ''' Main function '''
