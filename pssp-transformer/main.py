@@ -146,21 +146,18 @@ def eval_epoch(model, validation_data, device):
     return loss_per_word, accuracy
 
 def train(model, training_data, validation_data, optimizer, device, opt):
-    history = []
-    valid_accs = []
+    valid_losses = []
     for epoch in range(opt.epoch+1):
         train_loss, train_acc = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
         valid_loss, valid_acc = eval_epoch(model, validation_data, device)
 
-        history.append([train_loss, train_acc, valid_loss, valid_acc])
-        valid_accs.append(valid_acc)
+        valid_losses.append(valid_loss)
 
-        if max(valid_accs) <= valid_acc:
-            save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_acc)
+        if min(valid_losses) >= valid_loss:
+            save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_loss)
             torch.save(model.state_dict(), save_path)
 
-        print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f train_acc %5.3f test_acc %5.3f' % \
-                (epoch, opt.epoch, train_loss, valid_loss, train_acc, valid_acc), end='')
+        print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f' % (epoch, opt.epoch, train_loss, valid_loss), end='')
 
 def main():
     ''' Main function '''
@@ -185,9 +182,6 @@ def main():
     opt = parser.parse_args()
 
     print(vars(opt))
-
-    with open('%s/args.json' % opt.model_dir, 'w') as f:
-        json.dump(vars(opt), f)
 
     #========= Loading Dataset =========#
     data = torch.load(opt.data)
