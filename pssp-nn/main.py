@@ -60,7 +60,7 @@ def train(train_loader, model, optimizer, loss_function, epoch):
         loss.backward()
         optimizer.step()
 
-        print('\repoch%3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
+    print('epoch%3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
 
 def test(test_loader, model, loss_function):
     test_loss = 0
