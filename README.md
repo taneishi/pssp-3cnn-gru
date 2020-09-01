@@ -24,7 +24,7 @@ I used CB513 dataset of https://github.com/alrojo/CB513.
 
 You can get more infomations by adding `-h` option.
 
-### pssp-nn
+### pssp-3cnn-gru
 
 ```
 python main.py

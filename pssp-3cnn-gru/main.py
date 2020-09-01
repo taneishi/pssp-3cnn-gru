@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch
 import timeit
 import argparse
-import os
 
 from model import Net
 
@@ -47,13 +46,13 @@ def accuracy(out, target, seq_len):
 
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-def train(train_loader, model, optimizer, loss_function, epoch):
+def train(train_loader, net, optimizer, loss_function, epoch):
     train_loss = 0
-    model.train()
+    net.train()
 
     for index, (data, target, seq_len) in enumerate(train_loader, 1):
         optimizer.zero_grad()
-        out = model(data)
+        out = net(data)
         loss = loss_function(out, target, seq_len)
         train_loss += loss.item() / len(data)
         acc = accuracy(out, target, seq_len)
@@ -62,14 +61,14 @@ def train(train_loader, model, optimizer, loss_function, epoch):
 
     print('epoch%3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
 
-def test(test_loader, model, loss_function):
+def test(test_loader, net, loss_function):
     test_loss = 0
     acc = 0
-    model.eval()
+    net.eval()
 
     for index, (data, target, seq_len) in enumerate(test_loader, 1):
         with torch.no_grad():
-            out = model(data)
+            out = net(data)
         loss = loss_function(out, target, seq_len)
         test_loss += loss.item() / len(data)
         acc += accuracy(out, target, seq_len)
@@ -87,14 +86,15 @@ def main(args):
     print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
 
     # model, loss_function, optimizer
-    model = Net().to(device)
+    net = Net().to(device)
+
     if args.modelfile:
-        model.load_state_dict(torch.load(args.modelfile))
+        net.load_state_dict(torch.load(args.modelfile))
     
     if torch.cuda.device_count() > 1:
-        model = torch.nn.DataParallel(model)
+        net = torch.nn.DataParallel(net)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_function = CrossEntropy()
 
     test_losses = []
@@ -102,22 +102,22 @@ def main(args):
     for epoch in range(args.epochs):
         epoch_start = timeit.default_timer()
 
-        train(train_loader, model, optimizer, loss_function, epoch)
-        test_loss = test(test_loader, model, loss_function)
+        train(train_loader, net, optimizer, loss_function, epoch)
+        test_loss = test(test_loader, net, loss_function)
 
         print(' %5.2f sec' % (timeit.default_timer() - epoch_start))
 
         test_losses.append(test_loss)
 
         if test_loss <= min(test_losses):
-            torch.save(model.state_dict(), 'model/%5.3f.pth' % test_loss)
+            torch.save(net.state_dict(), 'model/%5.3f.pth' % test_loss)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('modelfile', nargs='?')
-    parser.add_argument('-e', '--epochs', type=int, default=100)
-    parser.add_argument('-b', '--batch_size_train', type=int, default=100, help='input batch size for training (default: 100)')
-    parser.add_argument('-b_test', '--batch_size_test', type=int, default=1000, help='input batch size for testing (default: 1000)')
+    parser.add_argument('--modelfile', default=None)
+    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--batch_size_train', type=int, default=100, help='input batch size for training (default: 100)')
+    parser.add_argument('--batch_size_test', type=int, default=1000, help='input batch size for testing (default: 1000)')
     parser.add_argument('--lr', default=1e-4, type=float)
     parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--cpu', action='store_true')

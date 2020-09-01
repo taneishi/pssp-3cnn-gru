@@ -4,9 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import argparse
-import math
 import timeit
-import json
 
 from transformer.Models import Transformer
 from transformer.Optim import ScheduledOptim
@@ -70,29 +68,23 @@ def prepare_dataloaders(data, opt):
         collate_fn=paired_collate_fn)
     return train_loader, valid_loader
 
-def train_epoch(model, training_data, optimizer, device, smoothing):
+def train(net, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
-    model.train()
+    net.train()
 
     total_loss = 0
     n_word_total = 0
     n_word_correct = 0
 
-    epoch_start = timeit.default_timer()
-
     for batch in training_data:
         # prepare data
         src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
-        # print('-----------')
-        # print(f'src_seq : {src_seq.shape}')
-        # print(f'src_pos : {src_pos.shape}')
-        # print(f'tgt_seq : {tgt_seq.shape}')
-        # print(f'tgt_pos : {tgt_pos.shape}')
+
         gold = tgt_seq[:, 1:]
 
         # forward
         optimizer.zero_grad()
-        pred = model(src_seq, src_pos, tgt_seq, tgt_pos)
+        pred = net(src_seq, src_pos, tgt_seq, tgt_pos)
 
         # backward
         loss, n_correct = cal_performance(pred, gold, smoothing=smoothing)
@@ -109,28 +101,26 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
         n_word_total += n_word
         n_word_correct += n_correct
 
-    print(' time %5.2f' % (timeit.default_timer() - epoch_start))
-
     loss_per_word = total_loss / n_word_total
     accuracy = n_word_correct / n_word_total
     return loss_per_word, accuracy
 
-def eval_epoch(model, validation_data, device):
+def test(net, test_data, device):
     ''' Epoch operation in evaluation phase '''
-    model.eval()
+    net.eval()
 
     total_loss = 0
     n_word_total = 0
     n_word_correct = 0
 
     with torch.no_grad():
-        for batch in validation_data:
+        for batch in test_data:
             # prepare data
             src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
             gold = tgt_seq[:, 1:]
 
             # forward
-            pred = model(src_seq, src_pos, tgt_seq, tgt_pos)
+            pred = net(src_seq, src_pos, tgt_seq, tgt_pos)
             loss, n_correct = cal_performance(pred, gold, smoothing=False)
 
             # note keeping
@@ -145,22 +135,63 @@ def eval_epoch(model, validation_data, device):
     accuracy = n_word_correct / n_word_total
     return loss_per_word, accuracy
 
-def train(model, training_data, validation_data, optimizer, device, opt):
-    valid_losses = []
-    for epoch in range(opt.epoch+1):
-        train_loss, train_acc = train_epoch(model, training_data, optimizer, device, smoothing=opt.label_smoothing)
-        valid_loss, valid_acc = eval_epoch(model, validation_data, device)
-
-        valid_losses.append(valid_loss)
-
-        if min(valid_losses) >= valid_loss:
-            save_path = '%s/%5.3f.pth' % (opt.model_dir, valid_loss)
-            torch.save(model.state_dict(), save_path)
-
-        print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f' % (epoch, opt.epoch, train_loss, valid_loss), end='')
-
-def main():
+def main(args):
     ''' Main function '''
+    #========= Loading Dataset =========#
+    data = torch.load(args.data)
+    args.max_token_seq_len = data['settings'].max_token_seq_len
+
+    training_data, test_data = prepare_dataloaders(data, args)
+
+    args.src_vocab_size = training_data.dataset.src_vocab_size
+    args.tgt_vocab_size = training_data.dataset.tgt_vocab_size
+
+    #========= Preparing Model =========#
+    if args.embs_share_weight:
+        assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
+            'The src/tgt word2idx table are different but asked to share word embedding.'
+
+    device = torch.device('cuda' if not args.cpu and torch.cuda.is_available() else 'cpu')
+    print('Using %s device.' % device)
+
+    net = Transformer(
+        args.src_vocab_size,
+        args.tgt_vocab_size,
+        args.max_token_seq_len,
+        tgt_emb_prj_weight_sharing=args.proj_share_weight,
+        emb_src_tgt_weight_sharing=args.embs_share_weight,
+        d_k=args.d_k,
+        d_v=args.d_v,
+        d_model=args.d_model,
+        d_word_vec=args.d_word_vec,
+        d_inner=args.d_inner_hid,
+        n_layers=args.n_layers,
+        n_head=args.n_head,
+        dropout=args.dropout).to(device)
+
+    optimizer = ScheduledOptim(
+        optim.Adam(
+            filter(lambda x: x.requires_grad, net.parameters()),
+            betas=(0.9, 0.98), eps=1e-09),
+        args.d_model, args.n_warmup_steps)
+
+    test_losses = []
+    for epoch in range(args.epoch+1):
+        epoch_start = timeit.default_timer()
+
+        train_loss, train_acc = train(net, training_data, optimizer, device, smoothing=args.label_smoothing)
+        test_loss, test_acc = test(net, test_data, device)
+
+        print('[%03d/%03d] train_loss %6.3f test_loss: %6.3f time %5.2fsec' % (
+            epoch, args.epoch, train_loss, test_loss, (timeit.default_timer() - epoch_start)))
+
+        test_losses.append(test_loss)
+
+        if min(test_losses) >= test_loss:
+            save_path = '%s/%5.3f.pth' % (args.model_dir, test_loss)
+            torch.save(net.state_dict(), save_path)
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', default='data/dataset.pt')
     parser.add_argument('--epoch', type=int, default=100)
@@ -179,49 +210,8 @@ def main():
     parser.add_argument('--model_dir', type=str, default='model')
     parser.add_argument('--label_smoothing', action='store_true')
     parser.add_argument('--cpu', action='store_true')
-    opt = parser.parse_args()
+    args = parser.parse_args()
 
-    print(vars(opt))
+    print(vars(args))
 
-    #========= Loading Dataset =========#
-    data = torch.load(opt.data)
-    opt.max_token_seq_len = data['settings'].max_token_seq_len
-
-    training_data, validation_data = prepare_dataloaders(data, opt)
-
-    opt.src_vocab_size = training_data.dataset.src_vocab_size
-    opt.tgt_vocab_size = training_data.dataset.tgt_vocab_size
-
-    #========= Preparing Model =========#
-    if opt.embs_share_weight:
-        assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
-            'The src/tgt word2idx table are different but asked to share word embedding.'
-
-    device = torch.device('cuda' if not opt.cpu and torch.cuda.is_available() else 'cpu')
-    print('Using %s device.' % device)
-
-    transformer = Transformer(
-        opt.src_vocab_size,
-        opt.tgt_vocab_size,
-        opt.max_token_seq_len,
-        tgt_emb_prj_weight_sharing=opt.proj_share_weight,
-        emb_src_tgt_weight_sharing=opt.embs_share_weight,
-        d_k=opt.d_k,
-        d_v=opt.d_v,
-        d_model=opt.d_model,
-        d_word_vec=opt.d_word_vec,
-        d_inner=opt.d_inner_hid,
-        n_layers=opt.n_layers,
-        n_head=opt.n_head,
-        dropout=opt.dropout).to(device)
-
-    optimizer = ScheduledOptim(
-        optim.Adam(
-            filter(lambda x: x.requires_grad, transformer.parameters()),
-            betas=(0.9, 0.98), eps=1e-09),
-        opt.d_model, opt.n_warmup_steps)
-
-    train(transformer, training_data, validation_data, optimizer, device, opt)
-
-if __name__ == '__main__':
-    main()
+    main(args)
