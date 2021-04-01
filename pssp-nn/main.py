@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch
 import timeit
 import argparse
+import os
 
 from model import Net
 
@@ -123,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--seed', default=123, type=int)
     args = parser.parse_args()
+    os.makedirs('model', exist_ok=True)
 
     torch.manual_seed(args.seed)
 
