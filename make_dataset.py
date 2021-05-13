@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import os
 
 TRAIN_FILE = 'cullpdb+profile_6133_filtered.npy.gz'
@@ -41,6 +42,11 @@ if __name__ == '__main__':
     X_train, y_train, seq_len_train = make_dataset(TRAIN_FILE)
     X_test, y_test, seq_len_test = make_dataset(TEST_FILE)
 
-    np.savez_compressed('data/dataset.npz',
-            X_train=X_train, y_train=y_train, seq_len_train=seq_len_train,
-            X_test=X_test, y_test=y_test, seq_len_test=seq_len_test)
+    data = {'X_train':X_train,
+            'y_train':y_train,
+            'seq_len_train':seq_len_train,
+            'X_test':X_test,
+            'y_test':y_test,
+            'seq_len_test':seq_len_test}
+
+    torch.save(data, 'data/dataset.pt')

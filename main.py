@@ -17,7 +17,13 @@ class CrossEntropy(object):
         return loss
 
 def data_load(args, device):
-    X_train, y_train, seq_len_train, X_test, y_test, seq_len_test = np.load('data/dataset.npz').values()
+    data = torch.load('data/dataset.pt')
+    X_train = data['X_train']
+    y_train = data['y_train']
+    seq_len_train = data['seq_len_train']
+    X_test = data['X_test']
+    y_test = data['y_test']
+    seq_len_test = data['seq_len_test']
 
     X_train = torch.FloatTensor(X_train).to(device)
     y_train = torch.LongTensor(y_train).to(device)
