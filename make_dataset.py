@@ -49,4 +49,4 @@ if __name__ == '__main__':
             'y_test':y_test,
             'seq_len_test':seq_len_test}
 
-    torch.save(data, 'data/dataset.pt')
+    torch.save(data, 'data/dataset.pth')

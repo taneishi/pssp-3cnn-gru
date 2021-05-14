@@ -17,7 +17,7 @@ class CrossEntropy(object):
         return loss
 
 def data_load(args, device):
-    data = torch.load('data/dataset.pt')
+    data = torch.load('data/dataset.pth')
     X_train = data['X_train']
     y_train = data['y_train']
     seq_len_train = data['seq_len_train']
