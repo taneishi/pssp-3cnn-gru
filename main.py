@@ -85,6 +85,8 @@ def test(test_loader, net, loss_function):
     return test_loss / index
 
 def main(args):
+    torch.manual_seed(args.seed)
+
     device = torch.device('cuda' if not args.cpu and torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
@@ -116,13 +118,15 @@ def main(args):
 
         test_losses.append(test_loss)
 
-        if test_loss <= min(test_losses):
+        if test_loss <= min(test_losses) and args.model_save:
+            os.makedirs(args.model_dir, exist_ok=True)
             torch.save(net.state_dict(), os.path.join(args.model_dir, '%5.3f.pth' % test_loss))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
     parser.add_argument('--modelfile', default=None)
     parser.add_argument('--model_dir', default='model')
+    parser.add_argument('--model_save', default=False)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size_train', type=int, default=100, help='input batch size for training (default: 100)')
     parser.add_argument('--batch_size_test', type=int, default=1000, help='input batch size for testing (default: 1000)')
@@ -130,10 +134,6 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', default=0.01, type=float)
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--seed', default=123, type=int)
-
     args = parser.parse_args()
-    os.makedirs(args.model_dir, exist_ok=True)
-
-    torch.manual_seed(args.seed)
 
     main(args)
