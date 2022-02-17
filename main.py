@@ -16,30 +16,29 @@ class CrossEntropy(object):
         loss = sum(self.loss_function(o[:l], t[:l]) for o, t, l in zip(out, target, seq_len))
         return loss
 
-def data_load(args, device):
-    data = torch.load('data/dataset.pth')
-    X_train = data['X_train']
-    y_train = data['y_train']
-    seq_len_train = data['seq_len_train']
-    X_test = data['X_test']
-    y_test = data['y_test']
-    seq_len_test = data['seq_len_test']
+def data_load(path, device):
+    data = np.load('data/%s' % (path))
+    data = data.reshape(-1, 700, 57) # original 57 features
 
-    X_train = torch.FloatTensor(X_train).to(device)
-    y_train = torch.LongTensor(y_train).to(device)
-    seq_len_train = torch.ShortTensor(seq_len_train).to(device)
+    X = data[:, :, np.arange(21)] # 20-residues + non-seq
+    X = X.transpose(0, 2, 1)
+    X = X.astype('float32')
 
-    X_test = torch.FloatTensor(X_test).to(device)
-    y_test = torch.LongTensor(y_test).to(device)
-    seq_len_test = torch.ShortTensor(seq_len_test).to(device)
+    y = data[:, :, 22:30] # 8-state
+    y = np.array([np.dot(yi, np.arange(8)) for yi in y])
+    y = y.astype('float32')
 
-    train_dataset = torch.utils.data.TensorDataset(X_train, y_train, seq_len_train)
-    test_dataset = torch.utils.data.TensorDataset(X_test, y_test, seq_len_test)
+    mask = data[:, :, 30] * -1 + 1
+    seq_len = mask.sum(axis=1)
+    seq_len = seq_len.astype('int')
+    
+    X = torch.FloatTensor(X).to(device)
+    y = torch.LongTensor(y).to(device)
+    seq_len = torch.ShortTensor(seq_len).to(device)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size_train, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size_test, shuffle=False)
+    dataset = torch.utils.data.TensorDataset(X, y, seq_len)
 
-    return train_loader, test_loader
+    return dataset
 
 def accuracy(out, target, seq_len):
     '''
@@ -53,87 +52,78 @@ def accuracy(out, target, seq_len):
 
     return np.array([np.equal(o[:l], t[:l]).sum()/l for o, t, l in zip(out, target, seq_len)]).mean()
 
-def train(train_loader, net, optimizer, loss_function, epoch):
-    train_loss = 0
-    net.train()
-
-    for index, (data, target, seq_len) in enumerate(train_loader, 1):
-        optimizer.zero_grad()
-        out = net(data)
-        loss = loss_function(out, target, seq_len)
-        train_loss += loss.item() / len(data)
-        acc = accuracy(out, target, seq_len)
-        loss.backward()
-        optimizer.step()
-
-    print('epoch%3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (epoch, index, len(train_loader), train_loss / index, acc), end='')
-
-def test(test_loader, net, loss_function):
-    test_loss = 0
-    acc = 0
-    net.eval()
-
-    for index, (data, target, seq_len) in enumerate(test_loader, 1):
-        with torch.no_grad():
-            out = net(data)
-        loss = loss_function(out, target, seq_len)
-        test_loss += loss.item() / len(data)
-        acc += accuracy(out, target, seq_len)
-    
-    print(' test_loss %5.3f test_acc %5.3f' % (test_loss / index, acc / index), end='')
-
-    return test_loss / index
-
 def main(args):
-    torch.manual_seed(args.seed)
+    torch.manual_seed(args.random_seed)
 
-    device = torch.device('cuda' if not args.cpu and torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
-    train_loader, test_loader = data_load(args, device)
+    train_dataset = data_load(args.train_path, device)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size_train, shuffle=True)
+    print('train %d' % (len(train_dataset)))
 
-    print('train %d test %d' % (len(train_loader.dataset), len(test_loader.dataset)))
+    test_dataset = data_load(args.test_path, device)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size_test)
+    print('test %d' % (len(test_dataset)))
 
     # model, loss_function, optimizer
     net = Net().to(device)
 
-    if args.modelfile:
-        net.load_state_dict(torch.load(args.modelfile))
+    #net.load_state_dict(torch.load('model.pth'))
     
-    if torch.cuda.device_count() > 1:
-        net = torch.nn.DataParallel(net)
+    #if torch.cuda.device_count() > 1:
+    #    net = torch.nn.DataParallel(net)
 
     optimizer = torch.optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_function = CrossEntropy()
 
-    test_losses = []
-
     for epoch in range(args.epochs):
         epoch_start = timeit.default_timer()
 
-        train(train_loader, net, optimizer, loss_function, epoch)
-        test_loss = test(test_loader, net, loss_function)
+        net.train()
+        train_loss = 0
+        train_acc = 0
+        for index, (data, target, seq_len) in enumerate(train_loader, 1):
+            optimizer.zero_grad()
+            out = net(data)
+            loss = loss_function(out, target, seq_len)
+            train_loss += loss.item() / len(data)
+            train_acc += accuracy(out, target, seq_len)
+            loss.backward()
+            optimizer.step()
 
-        print(' %5.2f sec' % (timeit.default_timer() - epoch_start))
+        print('\repoch %3d [%3d/%3d] train_loss %5.3f train_acc %5.3f' % (
+            epoch, index, len(train_loader), train_loss / index, train_acc / index), end='')
 
-        test_losses.append(test_loss)
+        net.eval()
+        test_loss = 0
+        test_acc = 0
+        for index, (data, target, seq_len) in enumerate(test_loader, 1):
+            with torch.no_grad():
+                out = net(data)
+            loss = loss_function(out, target, seq_len)
+            test_loss += loss.item() / len(data)
+            test_acc += accuracy(out, target, seq_len)
+        
+        print(' test_loss %5.3f test_acc %5.3f' % (test_loss / index, test_acc / index), end='')
 
-        if test_loss <= min(test_losses) and args.model_save:
-            os.makedirs(args.model_dir, exist_ok=True)
-            torch.save(net.state_dict(), os.path.join(args.model_dir, '%5.3f.pth' % test_loss))
+        print(' %5.2f sec' % (timeit.default_timer() - epoch_start), end='')
+
+        if epoch % (args.epochs / 10) == 0:
+            print('')
+
+    #torch.save(net.state_dict(), 'model.pth')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('--modelfile', default=None)
-    parser.add_argument('--model_dir', default='model')
-    parser.add_argument('--model_save', default=False)
-    parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--batch_size_train', type=int, default=100, help='input batch size for training (default: 100)')
-    parser.add_argument('--batch_size_test', type=int, default=1000, help='input batch size for testing (default: 1000)')
+    parser.add_argument('--random_seed', default=123, type=int)
+    parser.add_argument('--epochs', default=100, type=int)
+    parser.add_argument('--train_path', default='cullpdb+profile_6133_filtered.npy.gz')
+    parser.add_argument('--test_path', default='cb513+profile_split1.npy.gz')
+    parser.add_argument('--batch_size_train', default=100, type=int, help='input batch size for training (default: 100)')
+    parser.add_argument('--batch_size_test', default=1000, type=int, help='input batch size for testing (default: 1000)')
     parser.add_argument('--lr', default=1e-4, type=float)
     parser.add_argument('--weight_decay', default=0.01, type=float)
-    parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--seed', default=123, type=int)
     args = parser.parse_args()
 
     main(args)
