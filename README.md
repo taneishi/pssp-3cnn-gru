@@ -36,7 +36,6 @@ The 57 features are:
 - `[31,33)`: N- and C- terminals;
 - `[33,35)`: relative and absolute solvent accessibility, used only for training. (absolute accessibility is thresholded at 15; relative accessibility is normalized by the largest accessibility value in a protein and thresholded at 0.15; original solvent accessibility is computed by DSSP)
 - `[35,57)`: sequence profile. Note the order of amino acid residues is ACDEFGHIKLMNPQRSTVWXY and it is different from the order for amino acid residues
-```
 
 The last feature of both amino acid residues and secondary structure labels just mark end of the protein sequence.
 `[22,31)` and `[33,35)` are hidden during testing.
@@ -73,8 +72,8 @@ You can get more infomations by adding `-h` option.
 python main.py
 ```
 
-## Acknowledgement
+## References
 
 - https://github.com/alrojo/CB513 
 - [Li, Zhen; Yu, Yizhou, Protein Secondary Structure Prediction Using Cascaded Convolutional and Recurrent Neural Networks, 2016.](https://arxiv.org/pdf/1604.07176.pdf)
-- This repository was forked from [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction).
+- [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction).

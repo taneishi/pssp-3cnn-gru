@@ -98,20 +98,21 @@ def main(args):
         net.eval()
         test_loss = 0
         test_acc = 0
-        for index, (data, target, seq_len) in enumerate(test_loader, 1):
+        for data, target, seq_len in test_loader:
             with torch.no_grad():
                 out = net(data)
             loss = loss_function(out, target, seq_len)
             test_loss += loss.item() / len(data)
             test_acc += accuracy(out, target, seq_len)
         
-        print(' test_loss %5.3f test_acc %5.3f' % (test_loss / index, test_acc / index), end='')
+        print(' test_loss %5.3f test_acc %5.3f' % (test_loss / len(test_loader), test_acc / len(test_loader), end='')
 
         print(' %5.2f sec' % (timeit.default_timer() - epoch_start), end='')
 
         if epoch % (args.epochs / 10) == 0:
             print('')
 
+    print('')
     #torch.save(net.state_dict(), 'model.pth')
 
 if __name__ == '__main__':
