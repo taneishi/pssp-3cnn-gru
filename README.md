@@ -72,6 +72,7 @@ You can get more infomations by adding `-h` option.
 
 ### Result
 
+```
 epoch   0 [ 56/ 56] train_loss 1.998 train_acc 0.280 test_loss 1.967 test_acc 0.304 30.91sec
 epoch  10 [ 56/ 56] train_loss 1.767 train_acc 0.502 test_loss 1.795 test_acc 0.473 29.94sec
 epoch  20 [ 56/ 56] train_loss 1.712 train_acc 0.559 test_loss 1.754 test_acc 0.515 29.74sec
@@ -82,6 +83,7 @@ epoch  60 [ 56/ 56] train_loss 1.692 train_acc 0.579 test_loss 1.751 test_acc 0.
 epoch  70 [ 56/ 56] train_loss 1.690 train_acc 0.581 test_loss 1.742 test_acc 0.528 29.76sec
 epoch  80 [ 56/ 56] train_loss 1.685 train_acc 0.587 test_loss 1.743 test_acc 0.526 29.54sec
 epoch  90 [ 56/ 56] train_loss 1.683 train_acc 0.588 test_loss 1.738 test_acc 0.532 29.63sec
+```
 
 ## References
 
