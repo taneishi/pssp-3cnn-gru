@@ -60,19 +60,19 @@ def main(args):
 
     train_dataset = data_load(args.train_path, device)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size_train, shuffle=True)
-    print('train %d' % (len(train_dataset)))
+    print('train %d sequences %d batches' % (len(train_dataset), len(train_loader)))
 
     test_dataset = data_load(args.test_path, device)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size_test)
-    print('test %d' % (len(test_dataset)))
+    print('test %d sequences %d batches' % (len(test_dataset), len(test_loader)))
 
     # model, loss_function, optimizer
     net = Net().to(device)
 
     #net.load_state_dict(torch.load('model.pth'))
     
-    #if torch.cuda.device_count() > 1:
-    #    net = torch.nn.DataParallel(net)
+    if torch.cuda.device_count() > 1:
+        net = torch.nn.DataParallel(net)
 
     optimizer = torch.optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_function = CrossEntropy()
@@ -105,9 +105,8 @@ def main(args):
             test_loss += loss.item() / len(data)
             test_acc += accuracy(out, target, seq_len)
         
-        print(' test_loss %5.3f test_acc %5.3f' % (test_loss / len(test_loader), test_acc / len(test_loader), end='')
-
-        print(' %5.2f sec' % (timeit.default_timer() - epoch_start), end='')
+        print(' test_loss %5.3f test_acc %5.3f' % (test_loss / len(test_loader), test_acc / len(test_loader)), end='')
+        print(' %5.2fsec' % (timeit.default_timer() - epoch_start), end='')
 
         if epoch % (args.epochs / 10) == 0:
             print('')
@@ -126,5 +125,6 @@ if __name__ == '__main__':
     parser.add_argument('--lr', default=1e-4, type=float)
     parser.add_argument('--weight_decay', default=0.01, type=float)
     args = parser.parse_args()
+    print(vars(args))
 
     main(args)
