@@ -73,6 +73,9 @@ You can get more infomations by adding `-h` option.
 ### Result
 
 ```
+train 5534 sequences 56 batches
+test 514 sequences 1 batches
+
 epoch   0 [ 56/ 56] train_loss 1.998 train_acc 0.280 test_loss 1.967 test_acc 0.304 30.91sec
 epoch  10 [ 56/ 56] train_loss 1.767 train_acc 0.502 test_loss 1.795 test_acc 0.473 29.94sec
 epoch  20 [ 56/ 56] train_loss 1.712 train_acc 0.559 test_loss 1.754 test_acc 0.515 29.74sec
