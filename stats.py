@@ -42,6 +42,7 @@ def main(args):
     ax = plt.subplot(1, 2, 2)
     pd.DataFrame(test_seq_len, columns=['test set']).hist(bins=100, ax=ax)
 
+    plt.suptitle('Histogram of sequence length')
     plt.tight_layout()
     plt.savefig('figure/seq_len.png')
     
@@ -76,6 +77,7 @@ def main(args):
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
+    plt.suptitle('Histogram of Amino Acid Residues')
     plt.tight_layout()
     plt.savefig('figure/amino_acid.png')
 
@@ -102,6 +104,7 @@ def main(args):
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
+    plt.suptitle('Histogram of 8-state Secondary Structure')
     plt.tight_layout()
     plt.savefig('figure/ss.png')
 
