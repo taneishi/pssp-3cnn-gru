@@ -7,6 +7,7 @@ import argparse
 import os
 
 from model import Net
+from stats import data_load
 
 class CrossEntropy(object):
     def __init__(self):
@@ -15,30 +16,6 @@ class CrossEntropy(object):
     def __call__(self, out, target, seq_len):
         loss = sum(self.loss_function(o[:l], t[:l]) for o, t, l in zip(out, target, seq_len))
         return loss
-
-def data_load(path, device):
-    data = np.load('data/%s' % (path))
-    data = data.reshape(-1, 700, 57) # original 57 features
-
-    X = data[:, :, np.arange(21)] # 20-residues + non-seq
-    X = X.transpose(0, 2, 1)
-    X = X.astype('float32')
-
-    y = data[:, :, 22:30] # 8-state
-    y = np.array([np.dot(yi, np.arange(8)) for yi in y])
-    y = y.astype('float32')
-
-    mask = data[:, :, 30] * -1 + 1
-    seq_len = mask.sum(axis=1)
-    seq_len = seq_len.astype('int')
-    
-    X = torch.FloatTensor(X).to(device)
-    y = torch.LongTensor(y).to(device)
-    seq_len = torch.ShortTensor(seq_len).to(device)
-
-    dataset = torch.utils.data.TensorDataset(X, y, seq_len)
-
-    return dataset
 
 def accuracy(out, target, seq_len):
     '''
@@ -58,11 +35,19 @@ def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using %s device.' % device)
 
-    train_dataset = data_load(args.train_path, device)
+    X, y, seq_len = data_load(args.train_path)
+    X = torch.FloatTensor(X).to(device)
+    y = torch.LongTensor(y).to(device)
+    seq_len = torch.ShortTensor(seq_len).to(device)
+    train_dataset = torch.utils.data.TensorDataset(X, y, seq_len)
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size_train, shuffle=True)
     print('train %d sequences %d batches' % (len(train_dataset), len(train_loader)))
 
-    test_dataset = data_load(args.test_path, device)
+    X, y, seq_len = data_load(args.test_path)
+    X = torch.FloatTensor(X).to(device)
+    y = torch.LongTensor(y).to(device)
+    seq_len = torch.ShortTensor(seq_len).to(device)
+    test_dataset = torch.utils.data.TensorDataset(X, y, seq_len)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size_test)
     print('test %d sequences %d batches' % (len(test_dataset), len(test_loader)))
 
