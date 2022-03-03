@@ -8,22 +8,15 @@ This repository includes datasets used in [Deep supervised and convolutional gen
 
 ### Update 2018-10-28
 
-The original `cullpdb+profile_6133.npy.gz` and `cullpdb+profile_6133_filtered.npy.gz` files uploaded contain duplicates.
-The fixed files with duplicates removed are `cullpdb+profile_5926.npy.gz` and `cullpdb+profile_5926_filtered.npy.gz`.
-
-The corresponding dataset division for the cullpdb+profile_5926.npy.gz dataset is
-
-- `[0,5430)` training
-- `[5435,5690)` test
-- `[5690,5926)` validation
-
-As described in the paper two datasets are used. Both are based on protein structures from cullpdb servers.
+As described in the paper two datasets are used.
+Both are based on protein structures from CullPDB servers.
 The difference is that the first one is divided to training/validation/test set,
 while the second one is filtered to remove redundancy with CB513 dataset (for the purpose of testing performance on CB513 dataset).
 
-cullpdb+profile_6133.npy.gz is the one with training/validation/test set division;
-cullpdb+profile_6133_filtered.npy.gz is the one after filtering for redundancy with CB513. this is used for evaluation on CB513.
-cb513+profile_split1.npy.gz is the CB513 features I used.
+`cullpdb+profile_6133.npy.gz` is the one with training/validation/test set division;
+`cullpdb+profile_6133_filtered.npy.gz` is the one after filtering for redundancy with CB513. this is used for evaluation on CB513.
+
+`cb513+profile_split1.npy.gz` is the CB513 features I used.
 Note that one of the sequences in CB513 is longer than 700 amino acids, and it is splited to two overlapping sequences and these are the last two samples (i.e. there are 514 rows instead of 513).
 
 It is currently in numpy format as a (N protein x k features) matrix. You can reshape it to (N protein x 700 amino acids x 57 features) first.
