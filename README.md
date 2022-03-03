@@ -27,7 +27,7 @@ The last feature of both amino acid residues and secondary structure labels just
 `[22,31)` and `[33,35)` are hidden during testing.
 
 
-The 'cullpdb+profile_5926_filtered.npy.gz' file are removed duplicates from the original 'cullpdb+profile_6133_filtered.npy.gz' file, updated 2018-10-28.
+The `cullpdb+profile_5926_filtered.npy.gz` file are removed duplicates from the original `cullpdb+profile_6133_filtered.npy.gz` file, updated 2018-10-28.
 
 The dataset division for the cullpdb+profile_5926.npy.gz dataset is
 
@@ -35,7 +35,7 @@ The dataset division for the cullpdb+profile_5926.npy.gz dataset is
 - `[5435,5690)` test
 - `[5690,5926)` validation
 
-For the filtered dataset cullpdb+profile_5926_filtered.npy.gz, all proteins can be used for training and test on CB513 dataset.
+For the filtered dataset `cullpdb+profile_5926_filtered.npy.gz`, all proteins can be used for training and test on CB513 dataset.
 
 <img src="figure/seq_len.png" alt="sequence length" />
 
