@@ -37,10 +37,10 @@ def main(args):
     plt.figure(figsize=(12, 4))
 
     ax = plt.subplot(1, 2, 1)
-    pd.DataFrame(train_seq_len, columns=['training set']).hist(bins=700, ax=ax)
+    pd.DataFrame(train_seq_len, columns=['training set']).hist(bins=100, ax=ax)
 
     ax = plt.subplot(1, 2, 2)
-    pd.DataFrame(test_seq_len, columns=['test set']).hist(bins=700, ax=ax)
+    pd.DataFrame(test_seq_len, columns=['test set']).hist(bins=100, ax=ax)
 
     plt.tight_layout()
     plt.savefig('figure/seq_len.png')
