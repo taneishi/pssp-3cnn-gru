@@ -1,6 +1,6 @@
-# Example dataset of Protein Secondary Structure Prediction
+# Example datasets of Protein Secondary Structure Prediction
 
-Protein secondary structure prediction dataset, CullPDB6133 and CB513, and simple implementation in PyTorch.
+Protein secondary structure prediction datasets, CullPDB6133 and CB513, and simple implementation in PyTorch.
 
 ## Dataset
 
