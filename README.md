@@ -28,8 +28,8 @@ Note that one of the sequences in CB513 is longer than 700 amino acids, and it i
 It is currently in numpy format as a (N protein x k features) matrix. You can reshape it to (N protein x 700 amino acids x 57 features) first.
 
 The 57 features are:
-- `[0,22)`: amino acid residues, with the order of 'A', 'C', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y', 'X','NoSeq'
-- `[22,31)`: Secondary structure labels, with the sequence of 'L', 'B', 'E', 'G', 'I', 'H', 'S', 'T','NoSeq'
+- `[0,22)`: amino acid residues, with the order of 'A', 'C', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'N', 'Q', 'P', 'S', 'R', 'T', 'W', 'V', 'Y', 'X', 'NoSeq'
+- `[22,31)`: Secondary structure labels, with the sequence of 'L', 'B', 'E', 'G', 'I', 'H', 'S', 'T', 'NoSeq'
 - `[31,33)`: N- and C- terminals;
 - `[33,35)`: relative and absolute solvent accessibility, used only for training. (absolute accessibility is thresholded at 15; relative accessibility is normalized by the largest accessibility value in a protein and thresholded at 0.15; original solvent accessibility is computed by DSSP)
 - `[35,57)`: sequence profile. Note the order of amino acid residues is ACDEFGHIKLMNPQRSTVWXY and it is different from the order for amino acid residues
@@ -44,17 +44,11 @@ The dataset division for the first cullpdb+profile_6133.npy.gz dataset is
 
 For the filtered dataset cullpdb+profile_6133_filtered.npy.gz, all proteins can be used for training and test on CB513 dataset.
 
-|sequence length (train)|sequence length (test)|
-|:-:|:-:|
-|![](figure/seqlen_train.png)|![](figure/seqlen_test.png)|
+<img src="figure/seqlen.png" alt="sequence length" />
 
-|amino acid (train)|amino acid (test)|
-|:-:|:-:|
-|![](figure/amino_acid_train.png)|![](figure/amino_acid_test.png)|
+<img src="figure/amino_acid.png" alt="sequence length" />
 
-|secondary structure label(train)|secondary structure label (test)|
-|:-:|:-:|
-|![](figure/secondary_structure_train.png)|![](figure/secondary_structure_test.png)|
+<img src="figure/ss.png" alt="sequence length" />
 
 ## References
 
