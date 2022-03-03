@@ -44,7 +44,7 @@ The dataset division for the first cullpdb+profile_6133.npy.gz dataset is
 
 For the filtered dataset cullpdb+profile_6133_filtered.npy.gz, all proteins can be used for training and test on CB513 dataset.
 
-<img src="figure/seqlen.png" alt="sequence length" />
+<img src="figure/seq_len.png" alt="sequence length" />
 
 <img src="figure/amino_acid.png" alt="sequence length" />
 
