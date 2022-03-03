@@ -52,6 +52,6 @@ For the filtered dataset cullpdb+profile_6133_filtered.npy.gz, all proteins can 
 
 ## References
 
-- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network paper](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
+- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
 - [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction)
 - [Protein Secondary Structure Prediction on CB513](https://paperswithcode.com/sota/protein-secondary-structure-prediction-on-1)
