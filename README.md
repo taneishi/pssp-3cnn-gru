@@ -4,12 +4,12 @@ Protein secondary structure prediction datasets, CullPDB6133 and CB513, and simp
 
 ## Dataset
 
-This repository includes datasets used in ICML 2014 [Deep supervised and convolutional generative stochastic network for protein secondary structure prediction](https://dl.acm.org/doi/10.5555/3044805.3044890).
+This repository includes datasets used in [Deep supervised and convolutional generative stochastic network for protein secondary structure prediction](https://dl.acm.org/doi/10.5555/3044805.3044890) at ICML 2014.
 
 ### Update 2018-10-28
 
-The original 'cullpdb+profile_6133.npy.gz' and 'cullpdb+profile_6133_filtered.npy.gz' files uploaded contain duplicates.
-The fixed files with duplicates removed are 'cullpdb+profile_5926.npy.gz' and 'cullpdb+profile_5926_filtered.npy.gz'.
+The original `cullpdb+profile_6133.npy.gz` and `cullpdb+profile_6133_filtered.npy.gz` files uploaded contain duplicates.
+The fixed files with duplicates removed are `cullpdb+profile_5926.npy.gz` and `cullpdb+profile_5926_filtered.npy.gz`.
 
 The corresponding dataset division for the cullpdb+profile_5926.npy.gz dataset is
 
