@@ -104,7 +104,7 @@ def main(args):
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
-    plt.suptitle('Histogram of 8-state Secondary Structure')
+    plt.suptitle('Histogram of 8-state Secondary Structures')
     plt.tight_layout()
     plt.savefig('figure/ss.png')
 

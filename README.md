@@ -4,9 +4,10 @@ Protein secondary structure prediction datasets, CullPDB6133 and CB513, and simp
 
 ## Dataset
 
-This directory includes datasets used in ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network paper.
+This repository includes datasets used in ICML 2014 [Deep supervised and convolutional generative stochastic network for protein secondary structure prediction](https://dl.acm.org/doi/10.5555/3044805.3044890).
 
-Update 2018-10-28:
+### Update 2018-10-28
+
 The original 'cullpdb+profile_6133.npy.gz' and 'cullpdb+profile_6133_filtered.npy.gz' files uploaded contain duplicates.
 The fixed files with duplicates removed are 'cullpdb+profile_5926.npy.gz' and 'cullpdb+profile_5926_filtered.npy.gz'.
 
@@ -52,6 +53,6 @@ For the filtered dataset cullpdb+profile_6133_filtered.npy.gz, all proteins can 
 
 ## References
 
-- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
+- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network paper](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
 - [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction)
 - [Protein Secondary Structure Prediction on CB513](https://paperswithcode.com/sota/protein-secondary-structure-prediction-on-1)
