@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
     parser.add_argument('--random_seed', default=123, type=int)
     parser.add_argument('--epochs', default=100, type=int)
-    parser.add_argument('--train_path', default='cullpdb+profile_6133_filtered.npy.gz')
+    parser.add_argument('--train_path', default='cullpdb+profile_5926_filtered.npy.gz')
     parser.add_argument('--test_path', default='cb513+profile_split1.npy.gz')
     parser.add_argument('--batch_size_train', default=100, type=int, help='input batch size for training (default: 100)')
     parser.add_argument('--batch_size_test', default=1000, type=int, help='input batch size for testing (default: 1000)')

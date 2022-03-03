@@ -1,22 +1,17 @@
 # Example datasets of Protein Secondary Structure Prediction
 
-Protein secondary structure prediction datasets, CullPDB6133 and CB513, and simple implementation in PyTorch.
+Protein secondary structure prediction datasets, CullPDB5926 and CB513, and simple implementation in PyTorch.
 
 ## Dataset
 
 This repository includes datasets used in [Deep supervised and convolutional generative stochastic network for protein secondary structure prediction](https://dl.acm.org/doi/10.5555/3044805.3044890) at ICML 2014.
 
-### Update 2018-10-28
+As described in the paper two datasets are used. Both are based on protein structures from CullPDB servers.
+The difference is that the first one is divided to training/validation/test set, while the second one is filtered to remove redundancy with CB513 dataset (for the purpose of testing performance on CB513 dataset).
 
-As described in the paper two datasets are used.
-Both are based on protein structures from CullPDB servers.
-The difference is that the first one is divided to training/validation/test set,
-while the second one is filtered to remove redundancy with CB513 dataset (for the purpose of testing performance on CB513 dataset).
+`cullpdb+profile_5926_filtered.npy.gz` is the one with training/validation/test set division, after filtering for redundancy with CB513. this is used for evaluation on CB513.
 
-`cullpdb+profile_6133.npy.gz` is the one with training/validation/test set division;
-`cullpdb+profile_6133_filtered.npy.gz` is the one after filtering for redundancy with CB513. this is used for evaluation on CB513.
-
-`cb513+profile_split1.npy.gz` is the CB513 features I used.
+`cb513+profile_split1.npy.gz` is the CB513 including protein features.
 Note that one of the sequences in CB513 is longer than 700 amino acids, and it is splited to two overlapping sequences and these are the last two samples (i.e. there are 514 rows instead of 513).
 
 It is currently in numpy format as a (N protein x k features) matrix. You can reshape it to (N protein x 700 amino acids x 57 features) first.
@@ -31,12 +26,16 @@ The 57 features are:
 The last feature of both amino acid residues and secondary structure labels just mark end of the protein sequence.
 `[22,31)` and `[33,35)` are hidden during testing.
 
-The dataset division for the first cullpdb+profile_6133.npy.gz dataset is
-- `[0,5600)` training
-- `[5605,5877)` test
-- `[5877,6133)` validation
 
-For the filtered dataset cullpdb+profile_6133_filtered.npy.gz, all proteins can be used for training and test on CB513 dataset.
+The 'cullpdb+profile_5926_filtered.npy.gz' file are removed duplicates from the original 'cullpdb+profile_6133_filtered.npy.gz' file, updated 2018-10-28.
+
+The dataset division for the cullpdb+profile_5926.npy.gz dataset is
+
+- `[0,5430)` training
+- `[5435,5690)` test
+- `[5690,5926)` validation
+
+For the filtered dataset cullpdb+profile_5926_filtered.npy.gz, all proteins can be used for training and test on CB513 dataset.
 
 <img src="figure/seq_len.png" alt="sequence length" />
 

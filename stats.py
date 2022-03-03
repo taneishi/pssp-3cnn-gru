@@ -42,7 +42,7 @@ def main(args):
     ax = plt.subplot(1, 2, 2)
     pd.DataFrame(test_seq_len, columns=['test set']).hist(bins=100, ax=ax)
 
-    plt.suptitle('Histogram of sequence length')
+    plt.suptitle('Sequence length')
     plt.tight_layout()
     plt.savefig('figure/seq_len.png')
     
@@ -77,7 +77,7 @@ def main(args):
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
-    plt.suptitle('Histogram of Amino Acid Residues')
+    plt.suptitle('Amino Acid Residues')
     plt.tight_layout()
     plt.savefig('figure/amino_acid.png')
 
@@ -104,13 +104,13 @@ def main(args):
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
-    plt.suptitle('Histogram of 8-state Secondary Structures')
+    plt.suptitle('8-state Secondary Structures')
     plt.tight_layout()
     plt.savefig('figure/ss.png')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Protein Secondary Structure Prediction')
-    parser.add_argument('--train_path', default='cullpdb+profile_6133_filtered.npy.gz')
+    parser.add_argument('--train_path', default='cullpdb+profile_5926_filtered.npy.gz')
     parser.add_argument('--test_path', default='cb513+profile_split1.npy.gz')
     args = parser.parse_args()
     print(vars(args))
