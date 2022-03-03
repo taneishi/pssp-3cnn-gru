@@ -90,7 +90,5 @@ epoch  90 [ 56/ 56] train_loss 1.683 train_acc 0.588 test_loss 1.738 test_acc 0.
 
 ## References
 
-- http://www.princeton.edu/~jzthree/datasets/ICML2014/
-- https://github.com/alrojo/CB513 
-- [Li, Zhen; Yu, Yizhou, Protein Secondary Structure Prediction Using Cascaded Convolutional and Recurrent Neural Networks, 2016.](https://arxiv.org/pdf/1604.07176.pdf)
-- [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction).
+- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network paper](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
+- [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction)
