@@ -26,7 +26,6 @@ The 57 features are:
 The last feature of both amino acid residues and secondary structure labels just mark end of the protein sequence.
 `[22,31)` and `[33,35)` are hidden during testing.
 
-
 The `cullpdb+profile_5926_filtered.npy.gz` file are removed duplicates from the original `cullpdb+profile_6133_filtered.npy.gz` file, updated 2018-10-28.
 
 The dataset division for the cullpdb+profile_5926.npy.gz dataset is
