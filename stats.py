@@ -47,21 +47,31 @@ def main(args):
     plt.savefig('figure/seq_len.png')
     
     # amino acid
+    out = open('data/train.aa', 'w')
     train_aa = []
     for seq, seq_len in zip(train_X, train_seq_len):
+        seq_aa = []
         for aa in seq[:, :seq_len].transpose(1, 0):
             aa = np.where(aa == 1)
             assert len(aa) == 1
             aa = AA[int(aa[0])]
-            train_aa.append(aa)
+            seq_aa.append(aa)
+        out.write(''.join(seq_aa)+'\n')
+        train_aa += seq_aa
+    out.close()
 
+    out = open('data/test.aa', 'w')
     test_aa = []
     for seq, seq_len in zip(test_X, test_seq_len):
+        seq_aa = []
         for aa in seq[:, :seq_len].transpose(1, 0):
             aa = np.where(aa == 1)
             assert len(aa) == 1
             aa = AA[int(aa[0])]
-            test_aa.append(aa)
+            seq_aa.append(aa)
+        out.write(''.join(seq_aa)+'\n')
+        test_aa += seq_aa
+    out.close()
 
     plt.figure(figsize=(12, 4))
 
@@ -82,19 +92,27 @@ def main(args):
     plt.savefig('figure/amino_acid.png')
 
     # secondary structure
+    out = open('data/train.ss', 'w')
     train_ss = []
     for seq, seq_len in zip(train_y, train_seq_len):
-        train_ss += list(map(lambda x: SS[int(x)], seq[:seq_len]))
+        ss = list(map(lambda x: SS[int(x)], seq[:seq_len]))
+        out.write(''.join(ss)+'\n')
+        train_ss += ss
+    out.close()
 
+    out = open('data/test.ss', 'w')
     test_ss = []
     for seq, seq_len in zip(test_y, test_seq_len):
-        test_ss += list(map(lambda x: SS[int(x)], seq[:seq_len]))
+        ss = list(map(lambda x: SS[int(x)], seq[:seq_len]))
+        out.write(''.join(ss)+'\n')
+        test_ss += ss
+    out.close()
 
     plt.figure(figsize=(12, 4))
 
     ax = plt.subplot(1, 2, 1)
     df = pd.DataFrame(train_ss).groupby(0).size()
-    df.index.name = 'train set'
+    df.index.name = 'training set'
     df.plot(kind='bar', ax=ax)
     ax.grid(True)
 
