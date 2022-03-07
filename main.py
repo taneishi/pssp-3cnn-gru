@@ -91,10 +91,7 @@ def main(args):
             test_acc += accuracy(out, target, seq_len)
         
         print(' test_loss %5.3f test_acc %5.3f' % (test_loss / len(test_loader), test_acc / len(test_loader)), end='')
-        print(' %5.2fsec' % (timeit.default_timer() - epoch_start), end='')
-
-        if epoch % (args.epochs / 10) == 0:
-            print('')
+        print(' %5.2fsec' % (timeit.default_timer() - epoch_start))
 
     print('')
     #torch.save(net.state_dict(), 'model.pth')
