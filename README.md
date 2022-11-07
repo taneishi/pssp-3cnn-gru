@@ -44,6 +44,6 @@ For the filtered dataset `cullpdb+profile_5926_filtered.npy.gz`, all proteins ca
 
 ## References
 
-- [Datasets for ICML 2014 Deep Supervised and Convolutional Generative Stochastic Network paper](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
+- [Datasets for ICML 2014 paper](http://www.princeton.edu/~jzthree/datasets/ICML2014/)
 - [takatex/protein-secondary-structure-prediction](https://github.com/takatex/protein-secondary-structure-prediction)
 - [Protein Secondary Structure Prediction on CB513](https://paperswithcode.com/sota/protein-secondary-structure-prediction-on-1)
